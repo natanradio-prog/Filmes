@@ -80,6 +80,15 @@ header p { color:var(--muted); font-size:.72rem; letter-spacing:.08em; text-tran
 .modal { width:100%; background:var(--surface2); border-radius:24px 24px 0 0; border:1px solid var(--border2); border-bottom:none; padding:20px 20px 36px; transform:translateY(100%); transition:transform .3s cubic-bezier(.22,.68,0,1.2); max-height:92vh; overflow-y:auto; }
 .modal-backdrop.open .modal { transform:translateY(0); }
 .modal-handle { width:40px; height:4px; background:var(--border2); border-radius:2px; margin:0 auto 20px; }
+.modal-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
+.modal-close {
+  width:36px; height:36px; border-radius:50%;
+  background:var(--surface3); border:1px solid var(--border2);
+  color:var(--muted); font-size:1rem; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:background .2s, color .2s; flex-shrink:0;
+}
+.modal-close:hover { background:var(--border2); color:var(--text); }
 .modal h2 { font-family:'Playfair Display',serif; font-size:1.3rem; font-weight:400; color:var(--accent); margin-bottom:4px; }
 .modal p { font-size:.8rem; color:var(--muted); margin-bottom:18px; }
 .search-row { display:flex; gap:8px; }
@@ -112,6 +121,22 @@ header p { color:var(--muted); font-size:.72rem; letter-spacing:.08em; text-tran
 @keyframes spin { to { transform:rotate(360deg); } }
 .error-state { padding:16px; color:#e07070; font-size:.83rem; display:none; background:rgba(184,72,72,.08); border-radius:10px; margin-top:12px; }
 .error-state.visible { display:block; }
+/* SEARCH RESULTS LIST */
+.results-list { margin-top:14px; display:flex; flex-direction:column; gap:8px; }
+.result-item {
+  display:flex; align-items:center; gap:12px;
+  background:var(--surface3); border:1px solid var(--border2);
+  border-radius:12px; padding:10px 12px; cursor:pointer;
+  transition:border-color .2s, background .2s;
+}
+.result-item:hover, .result-item:active { border-color:var(--accent); background:var(--surface2); }
+.result-item-poster { width:38px; height:56px; border-radius:6px; object-fit:cover; flex-shrink:0; background:var(--surface); display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:.9rem; overflow:hidden; }
+.result-item-poster img { width:100%; height:100%; object-fit:cover; display:block; }
+.result-item-info { flex:1; min-width:0; }
+.result-item-title { font-size:.88rem; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.result-item-meta { font-size:.7rem; color:var(--muted); margin-top:2px; }
+.result-item-arrow { color:var(--muted); font-size:.8rem; flex-shrink:0; }
+.results-header { font-size:.75rem; color:var(--muted); margin-bottom:4px; padding-left:2px; }
 
 /* GENRE SECTIONS */
 .genre-section { max-width:900px; margin:24px auto 0; padding:0 14px; }
@@ -176,17 +201,55 @@ header p { color:var(--muted); font-size:.72rem; letter-spacing:.08em; text-tran
 .dot-historico{background:var(--historico);} .dot-acao{background:var(--acao);}
 .dot-romance{background:var(--romance);} .dot-suspense{background:var(--suspense);}
 .dot-drama{background:var(--drama);}
-/* ASSISTIDOS SECTION */
-.assistidos-section { max-width:900px; margin:32px auto 0; padding:0 14px; }
-.assistidos-header { display:flex; align-items:center; gap:12px; margin-bottom:12px; padding-left:2px; cursor:pointer; }
-.assistidos-title { font-family:'Playfair Display',serif; font-size:1.05rem; font-style:italic; color:var(--watched); }
-.assistidos-toggle { font-size:.75rem; color:var(--muted); margin-left:auto; white-space:nowrap; }
-.assistidos-line { flex:1; height:1px; background:#2a4236; }
-.assistidos-list { display:block; }
-.assistidos-list.collapsed { display:none; }
-.film-card.in-assistidos { background:#15201a; border-color:#2a4236; opacity:.85; }
+/* DUAS LISTAS */
+.list-block { max-width:900px; margin:0 auto; padding:0; }
+.list-tab-bar {
+  display:flex; max-width:900px; margin:18px auto 0;
+  padding:0 14px; gap:10px;
+}
+.list-tab {
+  flex:1; padding:10px 0; border-radius:12px;
+  border:1px solid var(--border2); background:var(--surface);
+  font-size:.82rem; font-weight:600; cursor:pointer;
+  transition:all .2s; color:var(--muted); text-align:center;
+}
+.list-tab.active { background:var(--surface2); border-color:var(--accent); color:var(--accent); }
+.list-tab.active.tab-watched { border-color:var(--watched); color:var(--watched); background:#15201a; }
+.list-panel { display:none; }
+.list-panel.active { display:block; }
+/* Assistidos genre sections */
+.assistidos-section { max-width:900px; margin:24px auto 0; padding:0 14px; }
+.film-card.in-assistidos { background:#15201a; border-color:#2a4236; }
 .film-card.in-assistidos::before { background:var(--watched); }
 
+
+
+/* LIGHTBOX */
+#lightbox {
+  position:fixed; inset:0; z-index:600;
+  background:rgba(0,0,0,.92); backdrop-filter:blur(8px);
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; pointer-events:none; transition:opacity .25s;
+}
+#lightbox.open { opacity:1; pointer-events:all; }
+#lightbox img {
+  max-width:88vw; max-height:88vh;
+  border-radius:12px;
+  box-shadow:0 8px 48px rgba(0,0,0,.8);
+  transition:transform .3s cubic-bezier(.22,.68,0,1.1);
+  transform:scale(.92);
+}
+#lightbox.open img { transform:scale(1); }
+#lightbox-close {
+  position:absolute; top:20px; right:20px;
+  width:40px; height:40px; border-radius:50%;
+  background:rgba(255,255,255,.12); border:none;
+  color:#fff; font-size:1.2rem; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:background .2s;
+}
+#lightbox-close:hover { background:rgba(255,255,255,.25); }
+.poster-wrap { cursor:zoom-in; }
 
 /* TOAST */
 .toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--surface2); border:1px solid var(--border2); border-radius:100px; padding:9px 20px; font-size:.8rem; color:var(--text); z-index:300; opacity:0; transition:opacity .25s,transform .25s; pointer-events:none; white-space:nowrap; }
@@ -242,7 +305,14 @@ header p { color:var(--muted); font-size:.72rem; letter-spacing:.08em; text-tran
       <div>⏳ <span class="c-m" id="cremaining">0</span></div>
     </div>
   </header>
-  <div id="app"></div>
+  <div class="list-tab-bar">
+    <button class="list-tab" id="tabPending">⏳ A assistir</button>
+    <button class="list-tab tab-watched" id="tabWatched">✓ Assistidos</button>
+  </div>
+  <div id="app">
+    <div class="list-panel" id="panelPending"></div>
+    <div class="list-panel" id="panelWatched"></div>
+  </div>
 </div>
 
 <button class="fab" id="fabBtn" style="display:none">＋</button>
@@ -251,7 +321,10 @@ header p { color:var(--muted); font-size:.72rem; letter-spacing:.08em; text-tran
 <div class="modal-backdrop" id="modalBackdrop">
   <div class="modal">
     <div class="modal-handle"></div>
-    <h2>Adicionar Filme</h2>
+    <div class="modal-top">
+      <h2>Adicionar Filme</h2>
+      <button class="modal-close" id="btnCloseModal">✕</button>
+    </div>
     <p>Digite o título e a IA busca tudo automaticamente</p>
     <div class="search-row">
       <input class="search-input" id="searchInput" placeholder="Ex: Duna, O Poderoso Chefão…" autocomplete="off">
@@ -259,6 +332,10 @@ header p { color:var(--muted); font-size:.72rem; letter-spacing:.08em; text-tran
     </div>
     <div class="searching-state" id="searchingState"><span class="spin">⟳</span> Buscando informações…</div>
     <div class="error-state" id="errorState"></div>
+    <!-- Lista de resultados -->
+    <div id="searchResultsList" style="display:none"></div>
+
+    <!-- Preview do selecionado -->
     <div class="search-result" id="searchResult">
       <div class="result-inner">
         <div class="result-poster" id="resultPoster"></div>
@@ -272,7 +349,7 @@ header p { color:var(--muted); font-size:.72rem; letter-spacing:.08em; text-tran
       </div>
       <div class="result-actions">
         <button class="btn-add" id="btnAdd">＋ Adicionar à lista</button>
-        <button class="btn-cancel" id="btnCancel">Cancelar</button>
+        <button class="btn-cancel" id="btnCancel">← Voltar</button>
       </div>
     </div>
   </div>
@@ -365,7 +442,7 @@ async function loadAllPosters() {
 }
 
 // ─── STATE ─────────────────────────────────────────────────────
-let state = { films: [], watched: [], nextId: 200, assistidosCollapsed: false, collapsedGenres: {} };
+let state = { films: [], watched: [], nextId: 200, assistidosCollapsed: false, collapsedGenres: {}, collapsedWatchedGenres: {}, activeTab: 'pending' };
 let driveFileId = null;
 let accessToken = null;
 let saveTimeout = null;
@@ -423,6 +500,8 @@ async function loadFromDrive() {
       state.nextId = data.nextId || 200;
       state.assistidosCollapsed = data.assistidosCollapsed || false;
       state.collapsedGenres = data.collapsedGenres || {};
+      state.collapsedWatchedGenres = data.collapsedWatchedGenres || {};
+      state.activeTab = data.activeTab || 'pending';
     } else {
       state.films = INITIAL_FILMS;
       state.nextId = 200;
@@ -573,7 +652,9 @@ function cardHtml(film, gcClass, isWatchedCard=false) {
   return `
   <div class="film-card ${gcClass}${isWatchedCard?' in-assistidos watched':''}${isO?' open':''}" data-id="${film.id}">
     <div class="card-top">
-      <div class="poster-wrap">${poster}<div class="poster-overlay">✓</div></div>
+      <div class="poster-wrap" onclick="event.stopPropagation();openLightbox('${film.poster}','${film.title.replace(/'/g,"\'")}')">
+        ${poster}<div class="poster-overlay">✓</div>
+      </div>
       <div class="card-content">
         <div class="card-row1">
           <div class="card-main">
@@ -594,69 +675,69 @@ function cardHtml(film, gcClass, isWatchedCard=false) {
   </div>`;
 }
 
-function render() {
-  const app = document.getElementById('app');
-  let html = '';
+function genreSectionHtml(section, films, collapsedMap, dataPrefix) {
+  if (!films.length) return '';
+  const isCollapsed = !!collapsedMap[section.key];
+  return `<div class="genre-section">
+    <div class="genre-header ${isCollapsed?'collapsed':''}" data-genre="${section.key}" data-prefix="${dataPrefix}">
+      <div class="genre-dot ${section.dot}"></div>
+      <div class="genre-title">${section.label}</div>
+      <div class="genre-line"></div>
+      <div class="genre-count">${films.length}</div>
+      <span class="genre-chevron">▾</span>
+    </div>
+    <div class="genre-films ${isCollapsed?'collapsed':''}">
+      ${films.map(f => cardHtml(f, section.gc, dataPrefix==='w')).join('')}
+    </div>
+  </div>`;
+}
 
-  // Pending films (not watched)
+function render() {
+  // ── Pending panel ──────────────────────────────────────────────
+  let pendingHtml = '';
   for (const section of GENRE_SECTIONS) {
     const sFilms = state.films.filter(f => !state.watched.includes(f.id) && primaryGenre(f.genres) === section.key);
-    if (!sFilms.length) continue;
-    const isCollapsed = !!state.collapsedGenres[section.key];
-    const chevronClass = isCollapsed ? 'collapsed' : '';
-    const filmsClass = isCollapsed ? 'collapsed' : '';
-    html += `<div class="genre-section">
-      <div class="genre-header ${chevronClass}" data-genre="${section.key}">
-        <div class="genre-dot ${section.dot}"></div>
-        <div class="genre-title">${section.label}</div>
-        <div class="genre-line"></div>
-        <div class="genre-count">${sFilms.length}</div>
-        <span class="genre-chevron">▾</span>
-      </div>
-      <div class="genre-films ${filmsClass}">
-        ${sFilms.map(f => cardHtml(f, section.gc, false)).join('')}
-      </div>
-    </div>`;
+    pendingHtml += genreSectionHtml(section, sFilms, state.collapsedGenres, 'p');
   }
+  if (!pendingHtml) pendingHtml = '<p style="text-align:center;color:var(--muted);padding:40px 0;font-size:.88rem">Nenhum filme pendente 🎉</p>';
 
-  // Assistidos section
-  const watchedFilms = state.films.filter(f => state.watched.includes(f.id));
-  if (watchedFilms.length) {
-    const collapsed = state.assistidosCollapsed ? 'collapsed' : '';
-    const arrow = state.assistidosCollapsed ? '▸' : '▾';
-    html += `<div class="assistidos-section">
-      <div class="assistidos-header" id="assistidosToggle">
-        <div class="genre-dot" style="background:var(--watched)"></div>
-        <div class="assistidos-title">✓ Assistidos</div>
-        <div class="assistidos-line"></div>
-        <div class="assistidos-toggle">${arrow} ${watchedFilms.length} filme${watchedFilms.length>1?'s':''}</div>
-      </div>
-      <div class="assistidos-list ${collapsed}">
-        ${watchedFilms.map(f => cardHtml(f, 'gc-assistido', true)).join('')}
-      </div>
-    </div>`;
+  // ── Watched panel ──────────────────────────────────────────────
+  let watchedHtml = '';
+  for (const section of GENRE_SECTIONS) {
+    const sFilms = state.films.filter(f => state.watched.includes(f.id) && primaryGenre(f.genres) === section.key);
+    watchedHtml += genreSectionHtml(section, sFilms, state.collapsedWatchedGenres, 'w');
   }
+  if (!watchedHtml) watchedHtml = '<p style="text-align:center;color:var(--muted);padding:40px 0;font-size:.88rem">Nenhum filme assistido ainda</p>';
 
-  app.innerHTML = html;
+  document.getElementById('panelPending').innerHTML = pendingHtml;
+  document.getElementById('panelWatched').innerHTML = watchedHtml;
+
+  // ── Tabs ────────────────────────────────────────────────────────
+  const isPending = state.activeTab === 'pending';
+  document.getElementById('panelPending').classList.toggle('active', isPending);
+  document.getElementById('panelWatched').classList.toggle('active', !isPending);
+  document.getElementById('tabPending').classList.toggle('active', isPending);
+  document.getElementById('tabWatched').classList.toggle('active', !isPending);
+
+  // ── Counters ────────────────────────────────────────────────────
   document.getElementById('ctotal').textContent = state.films.length;
   document.getElementById('cwatched').textContent = state.watched.length;
   document.getElementById('cremaining').textContent = state.films.length - state.watched.length;
 
-  // Genre collapse toggle
+  // ── Genre collapse ──────────────────────────────────────────────
   document.querySelectorAll('.genre-header[data-genre]').forEach(header => {
     header.addEventListener('click', () => {
       const key = header.dataset.genre;
-      state.collapsedGenres[key] = !state.collapsedGenres[key];
+      const prefix = header.dataset.prefix;
+      if (prefix === 'w') state.collapsedWatchedGenres[key] = !state.collapsedWatchedGenres[key];
+      else state.collapsedGenres[key] = !state.collapsedGenres[key];
       render();
     });
   });
 
-  // Assistidos toggle
-  const tog = document.getElementById('assistidosToggle');
-  if (tog) tog.addEventListener('click', () => {
-    state.assistidosCollapsed = !state.assistidosCollapsed;
-    render();
-  });
+  // ── Tab clicks ──────────────────────────────────────────────────
+  document.getElementById('tabPending').onclick = () => { state.activeTab = 'pending'; render(); };
+  document.getElementById('tabWatched').onclick = () => { state.activeTab = 'watched'; render(); };
 
   bindCardEvents();
 }
@@ -679,6 +760,7 @@ function bindCardEvents() {
         const film = state.films.find(f => f.id === id);
         if (confirm(`Desmarcar "${film?.title}" como assistido?`)) {
           state.watched = state.watched.filter(w => w !== id);
+          state.activeTab = 'pending';
           scheduleSave(); render();
         }
       } else {
@@ -686,6 +768,7 @@ function bindCardEvents() {
         const film = state.films.find(f => f.id === id);
         if (confirm(`Marcar "${film?.title}" como assistido?`)) {
           state.watched.push(id);
+          state.activeTab = 'watched';
           scheduleSave(); render();
           showToast(`✓ "${film?.title}" marcado como assistido!`);
         }
@@ -726,7 +809,15 @@ document.getElementById('fabBtn').addEventListener('click', () => {
   setTimeout(() => document.getElementById('searchInput').focus(), 350);
 });
 backdrop.addEventListener('click', e => { if (e.target === backdrop) closeModal(); });
-document.getElementById('btnCancel').addEventListener('click', resetSearchUI);
+document.getElementById('btnCloseModal').addEventListener('click', closeModal);
+document.getElementById('btnCancel').addEventListener('click', () => {
+  document.getElementById('searchResult').classList.remove('visible');
+  pendingFilm = null;
+  const listEl = document.getElementById('searchResultsList');
+  if (listEl._results && listEl._results.length) {
+    listEl.style.display = 'block';
+  }
+});
 document.getElementById('btnAdd').addEventListener('click', addPendingFilm);
 document.getElementById('searchInput').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
 document.getElementById('searchBtn').addEventListener('click', doSearch);
@@ -736,6 +827,7 @@ function resetSearchUI() {
   document.getElementById('searchingState').classList.remove('visible');
   document.getElementById('errorState').classList.remove('visible');
   document.getElementById('searchResult').classList.remove('visible');
+  document.getElementById('searchResultsList').style.display = 'none';
   pendingFilm = null;
 }
 
@@ -746,12 +838,11 @@ async function doSearch() {
   document.getElementById('searchBtn').disabled = true;
   document.getElementById('searchingState').classList.add('visible');
   try {
-    const film = await searchFilmWithAI(query);
+    const results = await searchTMDB(query);
     document.getElementById('searchingState').classList.remove('visible');
     document.getElementById('searchBtn').disabled = false;
-    if (!film) throw new Error('Não encontrei informações para este título.');
-    pendingFilm = film;
-    showResult(film);
+    if (!results.length) throw new Error('Filme não encontrado. Tente o título original em inglês.');
+    showResultsList(results);
   } catch(err) {
     document.getElementById('searchingState').classList.remove('visible');
     document.getElementById('searchBtn').disabled = false;
@@ -760,36 +851,86 @@ async function doSearch() {
   }
 }
 
-async function searchFilmWithAI(title) {
-  const prompt = `Você é um especialista em cinema. O usuário digitou: "${title}"
-
-Retorne APENAS um objeto JSON válido (sem markdown, sem texto extra):
-{
-  "title": "Título em português (ou original se não houver tradução)",
-  "orig": "Título original",
-  "year": 1234,
-  "dir": "Nome do diretor",
-  "genres": ["use apenas: drama, terror, western, romance, acao, historico, suspense, guerra"],
-  "synopsis": "Sinopse em português com 2-3 frases, sem spoilers",
-  "poster_path": "/abcd1234.jpg (caminho TMDB real — null se não tiver certeza)"
-}
-
-Escolha o filme mais famoso que corresponde ao título. Responda APENAS o JSON.`;
-
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, messages: [{ role:'user', content: prompt }] })
-  });
-  if (!res.ok) throw new Error('Erro na API.');
+async function searchTMDB(query) {
+  const q = encodeURIComponent(query);
+  const res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${q}&language=pt-BR`);
+  if (!res.ok) throw new Error('Erro ao buscar no TMDB.');
   const data = await res.json();
-  const text = data.content?.[0]?.text || '';
-  const match = text.match(/\{[\s\S]*\}/);
-  if (!match) throw new Error('Resposta inválida.');
-  const film = JSON.parse(match[0]);
-  film.poster = film.poster_path && film.poster_path !== 'null' ? 'https://corsproxy.io/?url=https://image.tmdb.org/t/p/w342' + film.poster_path : null;
-  return film;
+  return (data.results || []).slice(0, 6);
 }
+
+function showResultsList(results) {
+  const listEl = document.getElementById('searchResultsList');
+  let html = '<div class="results-list">';
+  html += '<div class="results-header">Selecione o filme correto:</div>';
+  results.forEach((r, i) => {
+    const year = (r.release_date || '').slice(0, 4);
+    const poster = r.poster_path
+      ? `<img src="https://image.tmdb.org/t/p/w92${r.poster_path}" onerror="this.style.display='none'">`
+      : '🎬';
+    html += `<div class="result-item" data-idx="${i}">
+      <div class="result-item-poster">${poster}</div>
+      <div class="result-item-info">
+        <div class="result-item-title">${r.title || r.original_title}</div>
+        <div class="result-item-meta">${r.original_title !== r.title ? r.original_title + ' · ' : ''}${year}</div>
+      </div>
+      <div class="result-item-arrow">›</div>
+    </div>`;
+  });
+  html += '</div>';
+  listEl.innerHTML = html;
+  listEl.style.display = 'block';
+  listEl._results = results;
+
+  listEl.querySelectorAll('.result-item').forEach(item => {
+    item.addEventListener('click', async () => {
+      const idx = +item.dataset.idx;
+      const picked = listEl._results[idx];
+      listEl.style.display = 'none';
+      document.getElementById('searchingState').classList.add('visible');
+      try {
+        const film = await fetchFilmDetails(picked);
+        document.getElementById('searchingState').classList.remove('visible');
+        pendingFilm = film;
+        showResult(film);
+      } catch(e) {
+        document.getElementById('searchingState').classList.remove('visible');
+        document.getElementById('errorState').textContent = '⚠ Erro ao carregar detalhes.';
+        document.getElementById('errorState').classList.add('visible');
+      }
+    });
+  });
+}
+
+async function fetchFilmDetails(tmdbResult) {
+  const tmdbId = tmdbResult.id;
+  const detailRes = await fetch(
+    `https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${TMDB_KEY}&language=pt-BR&append_to_response=credits`
+  );
+  const detail = detailRes.ok ? await detailRes.json() : tmdbResult;
+  const crew = detail.credits?.crew || [];
+  const director = crew.find(c => c.job === 'Director');
+  const genreMap = {
+    28:'acao',12:'acao',16:'drama',18:'drama',27:'terror',
+    9648:'suspense',53:'suspense',10749:'romance',36:'historico',
+    10752:'guerra',37:'western',80:'suspense',878:'acao',14:'drama'
+  };
+  const mappedGenres = [...new Set((detail.genres||[]).map(g=>genreMap[g.id]).filter(Boolean))];
+  if (!mappedGenres.length) mappedGenres.push('drama');
+  const poster = tmdbResult.poster_path ? `https://image.tmdb.org/t/p/w342${tmdbResult.poster_path}` : null;
+  return {
+    title: detail.title || tmdbResult.title,
+    orig: detail.original_title || tmdbResult.original_title,
+    year: (detail.release_date || tmdbResult.release_date || '').slice(0, 4),
+    dir: director?.name || '—',
+    genres: mappedGenres,
+    synopsis: detail.overview || tmdbResult.overview || '',
+    poster,
+    tmdb_id: tmdbId,
+  };
+}
+
+// searchFilmWithAI replaced by searchTMDB + fetchFilmDetails above
 
 function showResult(film) {
   const posterEl = document.getElementById('resultPoster');
@@ -826,19 +967,37 @@ function addPendingFilm() {
   render();
   closeModal();
   showToast(`✓ "${newFilm.title}" adicionado!`);
-  // Try to fetch poster from TMDB if not already set
-  if (!newFilm.poster && newFilm.tmdb_id) {
-    fetch(`https://api.themoviedb.org/3/movie/${newFilm.tmdb_id}?api_key=${TMDB_KEY}&language=pt-BR`)
-      .then(r => r.json())
-      .then(d => {
-        if (d.poster_path) {
-          newFilm.poster = `https://image.tmdb.org/t/p/w342${d.poster_path}`;
-          posterCache[newFilm.id] = newFilm.poster;
-          scheduleSave(); render();
-        }
-      }).catch(()=>{});
-  }
+  // Cache poster for new film
+  if (newFilm.poster) posterCache[newFilm.id] = newFilm.poster;
 }
+
+// ─── LIGHTBOX ──────────────────────────────────────────────────
+function openLightbox(url, title) {
+  if (!url) return;
+  const bigUrl = url.replace('/w342/', '/w500/');
+  const lb = document.getElementById('lightbox');
+  const img = document.getElementById('lightbox-img');
+  img.src = bigUrl;
+  img.alt = title || '';
+  lb.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('lightbox-close').addEventListener('click', closeLightbox);
+document.getElementById('lightbox').addEventListener('click', e => {
+  if (e.target === document.getElementById('lightbox')) closeLightbox();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
 </script>
+
+<!-- LIGHTBOX -->
+<div id="lightbox">
+  <button id="lightbox-close">✕</button>
+  <img id="lightbox-img" src="" alt="">
+</div>
+
 </body>
 </html>
