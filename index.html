@@ -52,8 +52,8 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 .sync-dot.syncing { background:var(--accent); animation:pulse .9s infinite; }
 .sync-dot.error { background:#e07070; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-#btnSignOut { background:none; border:none; color:var(--muted2); font-size:.7rem; cursor:pointer; padding:2px 6px; border-radius:4px; }
-#btnSignOut:hover { color:#e07070; }
+#btnSignOut { background:var(--surface2); border:1px solid var(--border2); color:var(--muted); font-size:.78rem; cursor:pointer; padding:6px 14px; border-radius:8px; transition:all .2s; }
+#btnSignOut:hover { color:#e07070; border-color:#e07070; }
 
 /* HEADER */
 header {
@@ -119,6 +119,12 @@ header p { color:var(--muted); font-size:.72rem; letter-spacing:.08em; text-tran
 .genre-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
 .genre-title { font-family:'Playfair Display',serif; font-size:1.05rem; font-style:italic; color:var(--text); }
 .genre-count { font-size:.72rem; color:var(--muted); margin-left:auto; white-space:nowrap; }
+.genre-header { cursor:pointer; user-select:none; }
+.genre-header:active { opacity:.7; }
+.genre-chevron { font-size:.75rem; color:var(--muted); transition:transform .25s; margin-left:6px; display:inline-block; }
+.genre-header.collapsed .genre-chevron { transform:rotate(-90deg); }
+.genre-films { display:block; overflow:hidden; transition:all .2s; }
+.genre-films.collapsed { display:none; }
 .genre-line { flex:1; height:1px; background:var(--border); }
 
 /* FILM CARD */
@@ -323,7 +329,7 @@ const INITIAL_FILMS = [
 ];
 
 // ─── STATE ─────────────────────────────────────────────────────
-let state = { films: [], watched: [], nextId: 200, assistidosCollapsed: false };
+let state = { films: [], watched: [], nextId: 200, assistidosCollapsed: false, collapsedGenres: {} };
 let driveFileId = null;
 let accessToken = null;
 let saveTimeout = null;
@@ -380,6 +386,7 @@ async function loadFromDrive() {
       state.watched = data.watched;
       state.nextId = data.nextId || 200;
       state.assistidosCollapsed = data.assistidosCollapsed || false;
+      state.collapsedGenres = data.collapsedGenres || {};
     } else {
       state.films = INITIAL_FILMS;
       state.nextId = 200;
@@ -559,14 +566,20 @@ function render() {
   for (const section of GENRE_SECTIONS) {
     const sFilms = state.films.filter(f => !state.watched.includes(f.id) && primaryGenre(f.genres) === section.key);
     if (!sFilms.length) continue;
+    const isCollapsed = !!state.collapsedGenres[section.key];
+    const chevronClass = isCollapsed ? 'collapsed' : '';
+    const filmsClass = isCollapsed ? 'collapsed' : '';
     html += `<div class="genre-section">
-      <div class="genre-header">
+      <div class="genre-header ${chevronClass}" data-genre="${section.key}">
         <div class="genre-dot ${section.dot}"></div>
         <div class="genre-title">${section.label}</div>
         <div class="genre-line"></div>
         <div class="genre-count">${sFilms.length}</div>
+        <span class="genre-chevron">▾</span>
       </div>
-      ${sFilms.map(f => cardHtml(f, section.gc, false)).join('')}
+      <div class="genre-films ${filmsClass}">
+        ${sFilms.map(f => cardHtml(f, section.gc, false)).join('')}
+      </div>
     </div>`;
   }
 
@@ -592,6 +605,15 @@ function render() {
   document.getElementById('ctotal').textContent = state.films.length;
   document.getElementById('cwatched').textContent = state.watched.length;
   document.getElementById('cremaining').textContent = state.films.length - state.watched.length;
+
+  // Genre collapse toggle
+  document.querySelectorAll('.genre-header[data-genre]').forEach(header => {
+    header.addEventListener('click', () => {
+      const key = header.dataset.genre;
+      state.collapsedGenres[key] = !state.collapsedGenres[key];
+      render();
+    });
+  });
 
   // Assistidos toggle
   const tog = document.getElementById('assistidosToggle');
