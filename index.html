@@ -424,7 +424,7 @@ async function fetchPoster(filmId) {
   if (!tmdbId) return null;
   try {
     const res = await fetch(
-      `https://api.themoviedb.org/3/movie/${tmdbId}?language=pt-BR`, { headers: TMDB_HEADERS }
+      `https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${TMDB_KEY}&language=pt-BR`
     );
     if (!res.ok) return null;
     const data = await res.json();
@@ -448,12 +448,12 @@ async function loadAllPosters() {
       if (!tmdbId) {
         // Search by original title
         const q = encodeURIComponent(film.orig || film.title);
-        const r = await fetch(`https://api.themoviedb.org/3/search/movie?query=${q}&language=pt-BR`, { headers: TMDB_HEADERS });
+        const r = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${q}&language=pt-BR`);
         const d = await r.json();
         tmdbId = d.results?.[0]?.id;
       }
       if (!tmdbId) return;
-      const r2 = await fetch(`https://api.themoviedb.org/3/movie/${tmdbId}?language=pt-BR`, { headers: TMDB_HEADERS });
+      const r2 = await fetch(`https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${TMDB_KEY}&language=pt-BR`);
       const d2 = await r2.json();
       if (d2.poster_path) {
         film.poster = `https://image.tmdb.org/t/p/w342${d2.poster_path}`;
@@ -877,7 +877,7 @@ async function doSearch() {
 
 async function searchTMDB(query) {
   const q = encodeURIComponent(query);
-  const res = await fetch(`https://api.themoviedb.org/3/search/movie?query=${q}&language=pt-BR`, { headers: TMDB_HEADERS });
+  const res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${q}&language=pt-BR`);
   if (!res.ok) throw new Error('Erro ao buscar no TMDB.');
   const data = await res.json();
   return (data.results || []).slice(0, 6);
@@ -929,7 +929,7 @@ function showResultsList(results) {
 async function fetchFilmDetails(tmdbResult) {
   const tmdbId = tmdbResult.id;
   const detailRes = await fetch(
-    `https://api.themoviedb.org/3/movie/${tmdbId}?language=pt-BR&append_to_response=credits`, { headers: TMDB_HEADERS }
+    `https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${TMDB_KEY}&language=pt-BR&append_to_response=credits`
   );
   const detail = detailRes.ok ? await detailRes.json() : tmdbResult;
   const crew = detail.credits?.crew || [];
