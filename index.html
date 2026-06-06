@@ -305,7 +305,13 @@ header p { color:var(--muted); font-size:.72rem; letter-spacing:.08em; text-tran
       <div>⏳ <span class="c-m" id="cremaining">0</span></div>
     </div>
   </header>
-  <div class="list-tab-bar">
+  <!-- LIGHTBOX -->
+<div id="lightbox">
+  <button id="lightbox-close">✕</button>
+  <img id="lightbox-img" src="" alt="">
+</div>
+
+<div class="list-tab-bar">
     <button class="list-tab" id="tabPending">⏳ A assistir</button>
     <button class="list-tab tab-watched" id="tabWatched">✓ Assistidos</button>
   </div>
@@ -364,6 +370,8 @@ header p { color:var(--muted); font-size:.72rem; letter-spacing:.08em; text-tran
 // ─── CONFIG ────────────────────────────────────────────────────
 const CLIENT_ID = '901113028963-h32lerf3on87vu2qf5i0m6ajsqak1fq7.apps.googleusercontent.com';
 const TMDB_KEY = 'e9aae708d73c95b165e61679ff2917ff';
+const TMDB_BEARER = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlOWFhZTcwOGQ3M2M5NWIxNjVlNjE2NzlmZjI5MTdmZiIsIm5iZiI6MTc0OTIzMzc0NC43Miwic3ViIjoiNjgzZjk0YjQxNzM5N2Q1OWY0N2UyNmViIiwic2NvcGVzIjpbImFwaV9yZWFkIl0sInZlcnNpb24iOjF9.yLvrfUguVpieONzKbekh28mt7nMR08Ww6pS3f4vWy_k';
+const TMDB_HEADERS = { 'Authorization': 'Bearer ' + TMDB_BEARER, 'accept': 'application/json' };
 const TMDB_IDS = {1: 10867, 2: 384680, 3: 6947, 4: 1087388, 5: 4305, 6: 42614, 7: 4512, 8: 890869, 9: 779082, 10: 2668, 11: 201085, 12: 2291, 13: 310123, 14: 1929, 15: 426063, 16: 855273, 17: 482373, 18: 250734, 19: 332168, 20: 283552, 21: 576845, 22: 22538};
 const SCOPES = 'https://www.googleapis.com/auth/drive.appdata';
 const FILE_NAME = 'filmes_data.json';
@@ -416,7 +424,7 @@ async function fetchPoster(filmId) {
   if (!tmdbId) return null;
   try {
     const res = await fetch(
-      `https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${TMDB_KEY}&language=pt-BR`
+      `https://api.themoviedb.org/3/movie/${tmdbId}?language=pt-BR`, { headers: TMDB_HEADERS }
     );
     if (!res.ok) return null;
     const data = await res.json();
@@ -429,14 +437,29 @@ async function fetchPoster(filmId) {
 }
 
 async function loadAllPosters() {
-  const ids = Object.keys(TMDB_IDS).map(Number);
-  await Promise.all(ids.map(async id => {
-    const url = await fetchPoster(id);
-    if (url) {
-      // Patch into state.films
-      const film = state.films.find(f => f.id === id);
-      if (film) film.poster = url;
-    }
+  // Only fetch posters for films that don't have one yet
+  const filmsWithoutPoster = state.films.filter(f => !f.poster);
+  if (!filmsWithoutPoster.length) return;
+
+  await Promise.all(filmsWithoutPoster.map(async film => {
+    try {
+      // Try hardcoded TMDB ID first, then fallback to title search
+      let tmdbId = TMDB_IDS[film.id];
+      if (!tmdbId) {
+        // Search by original title
+        const q = encodeURIComponent(film.orig || film.title);
+        const r = await fetch(`https://api.themoviedb.org/3/search/movie?query=${q}&language=pt-BR`, { headers: TMDB_HEADERS });
+        const d = await r.json();
+        tmdbId = d.results?.[0]?.id;
+      }
+      if (!tmdbId) return;
+      const r2 = await fetch(`https://api.themoviedb.org/3/movie/${tmdbId}?language=pt-BR`, { headers: TMDB_HEADERS });
+      const d2 = await r2.json();
+      if (d2.poster_path) {
+        film.poster = `https://image.tmdb.org/t/p/w342${d2.poster_path}`;
+        posterCache[film.id] = film.poster;
+      }
+    } catch(e) {}
   }));
   render();
 }
@@ -585,6 +608,7 @@ function showApp() {
   document.getElementById('syncBar').classList.add('visible');
   document.getElementById('mainApp').style.display = 'block';
   document.getElementById('fabBtn').style.display = 'flex';
+  initLightbox();
   loadFromDrive().then(() => { render(); loadAllPosters(); });
 }
 
@@ -853,7 +877,7 @@ async function doSearch() {
 
 async function searchTMDB(query) {
   const q = encodeURIComponent(query);
-  const res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${q}&language=pt-BR`);
+  const res = await fetch(`https://api.themoviedb.org/3/search/movie?query=${q}&language=pt-BR`, { headers: TMDB_HEADERS });
   if (!res.ok) throw new Error('Erro ao buscar no TMDB.');
   const data = await res.json();
   return (data.results || []).slice(0, 6);
@@ -905,7 +929,7 @@ function showResultsList(results) {
 async function fetchFilmDetails(tmdbResult) {
   const tmdbId = tmdbResult.id;
   const detailRes = await fetch(
-    `https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${TMDB_KEY}&language=pt-BR&append_to_response=credits`
+    `https://api.themoviedb.org/3/movie/${tmdbId}?language=pt-BR&append_to_response=credits`, { headers: TMDB_HEADERS }
   );
   const detail = detailRes.ok ? await detailRes.json() : tmdbResult;
   const crew = detail.credits?.crew || [];
@@ -986,18 +1010,14 @@ function closeLightbox() {
   document.getElementById('lightbox').classList.remove('open');
   document.body.style.overflow = '';
 }
-document.getElementById('lightbox-close').addEventListener('click', closeLightbox);
-document.getElementById('lightbox').addEventListener('click', e => {
-  if (e.target === document.getElementById('lightbox')) closeLightbox();
-});
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+// lightbox events — bound in initLightbox() called from showApp
+function initLightbox() {
+  document.getElementById('lightbox-close').addEventListener('click', closeLightbox);
+  document.getElementById('lightbox').addEventListener('click', e => {
+    if (e.target === document.getElementById('lightbox')) closeLightbox();
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+}
 </script>
-
-<!-- LIGHTBOX -->
-<div id="lightbox">
-  <button id="lightbox-close">✕</button>
-  <img id="lightbox-img" src="" alt="">
-</div>
-
 </body>
 </html>
