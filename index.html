@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minha Lista de Filmes</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0d0d0f; --surface: #161619; --surface2: #1e1e23; --surface3: #242430;
+  --border: #2a2a32; --border2: #343442;
+  --text: #e8e6e0; --muted: #7a7880; --muted2: #55535c;
+  --accent: #c9a96e; --accent-dim: rgba(201,169,110,.12);
+  --watched: #4a9e6f; --watched-dim: rgba(74,158,111,.12);
+  --drama: #c9a96e; --terror: #b84848; --western: #c07a3a;
+  --romance: #c96e9e; --acao: #6e9ec9; --historico: #9ec96e;
+  --suspense: #8b7fba; --guerra: #9ecdc9;
+}
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; padding-bottom: 80px; }
+
+/* ── HEADER ── */
+header {
+  padding: 44px 20px 28px;
+  text-align: center;
+  background: linear-gradient(180deg,#16101e 0%,transparent 100%);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 50;
+  backdrop-filter: blur(12px);
+  background: rgba(13,13,15,.85);
+}
+header h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.7rem,5vw,2.6rem);
+  font-weight: 400; letter-spacing:.04em; color: var(--accent);
+}
+header p { color:var(--muted); font-size:.75rem; letter-spacing:.08em; text-transform:uppercase; margin-top:3px; }
+.counter {
+  margin-top:14px; display:inline-flex; gap:18px;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:100px; padding:7px 22px; font-size:.78rem; color:var(--muted);
+}
+.counter span { font-weight:600; }
+.c-w { color:var(--watched)!important; }
+.c-a { color:var(--accent)!important; }
+.c-m { color:var(--muted)!important; }
+
+/* ── ADD BUTTON ── */
+.fab {
+  position: fixed; bottom: 24px; right: 20px; z-index: 100;
+  width: 56px; height: 56px; border-radius: 50%;
+  background: var(--accent); border: none; cursor: pointer;
+  font-size: 1.6rem; color: #0d0d0f; font-weight: 700;
+  box-shadow: 0 4px 24px rgba(201,169,110,.45);
+  transition: transform .2s, box-shadow .2s;
+  display: flex; align-items: center; justify-content: center;
+}
+.fab:hover { transform: scale(1.1); box-shadow: 0 6px 32px rgba(201,169,110,.6); }
+.fab:active { transform: scale(.95); }
+
+/* ── MODAL ── */
+.modal-backdrop {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,.75); backdrop-filter: blur(6px);
+  display: flex; align-items: flex-end;
+  opacity: 0; pointer-events: none; transition: opacity .25s;
+}
+.modal-backdrop.open { opacity: 1; pointer-events: all; }
+.modal {
+  width: 100%; background: var(--surface2);
+  border-radius: 24px 24px 0 0;
+  border: 1px solid var(--border2); border-bottom: none;
+  padding: 20px 20px 36px;
+  transform: translateY(100%); transition: transform .3s cubic-bezier(.22,.68,0,1.2);
+  max-height: 92vh; overflow-y: auto;
+}
+.modal-backdrop.open .modal { transform: translateY(0); }
+.modal-handle { width:40px; height:4px; background:var(--border2); border-radius:2px; margin:0 auto 20px; }
+.modal h2 { font-family:'Playfair Display',serif; font-size:1.3rem; font-weight:400; color:var(--accent); margin-bottom:4px; }
+.modal p { font-size:.8rem; color:var(--muted); margin-bottom:18px; }
+
+.search-row { display:flex; gap:8px; }
+.search-input {
+  flex:1; background:var(--surface3); border:1px solid var(--border2);
+  border-radius:10px; padding:12px 14px; color:var(--text);
+  font-family:'DM Sans',sans-serif; font-size:.95rem;
+  outline:none; transition:border-color .2s;
+}
+.search-input:focus { border-color:var(--accent); }
+.search-input::placeholder { color:var(--muted2); }
+.btn-search {
+  background:var(--accent); color:#0d0d0f; border:none;
+  border-radius:10px; padding:12px 18px; font-size:.9rem; font-weight:600;
+  cursor:pointer; white-space:nowrap; transition:opacity .2s;
+}
+.btn-search:disabled { opacity:.5; cursor:default; }
+
+/* Search results preview */
+.search-result {
+  margin-top:16px; background:var(--surface3);
+  border:1px solid var(--border2); border-radius:14px;
+  overflow:hidden; display:none;
+}
+.search-result.visible { display:block; }
+.result-inner { display:flex; gap:14px; padding:14px; }
+.result-poster { width:64px; flex-shrink:0; }
+.result-poster img { width:100%; border-radius:8px; display:block; }
+.result-poster .no-poster { width:64px; height:96px; background:var(--surface); border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:1.4rem; }
+.result-info { flex:1; min-width:0; }
+.result-title { font-family:'Playfair Display',serif; font-size:1rem; font-weight:700; color:var(--text); }
+.result-orig { font-size:.72rem; color:var(--muted); font-style:italic; margin-top:1px; }
+.result-meta { display:flex; gap:6px; margin-top:6px; flex-wrap:wrap; align-items:center; }
+.result-year { font-size:.72rem; color:var(--muted); }
+.result-tag { font-size:.6rem; text-transform:uppercase; letter-spacing:.07em; padding:2px 7px; border-radius:100px; border:1px solid var(--border2); color:var(--muted); }
+.result-synopsis { font-size:.78rem; color:var(--muted); line-height:1.5; margin-top:8px; }
+.result-dir { font-size:.72rem; color:var(--muted); font-style:italic; margin-top:3px; }
+
+.result-actions { display:flex; gap:8px; padding:0 14px 14px; }
+.btn-add { flex:1; background:var(--watched); color:#fff; border:none; border-radius:10px; padding:11px; font-size:.88rem; font-weight:600; cursor:pointer; transition:opacity .2s; }
+.btn-add:hover { opacity:.85; }
+.btn-cancel { background:var(--surface); color:var(--muted); border:1px solid var(--border2); border-radius:10px; padding:11px 16px; font-size:.88rem; cursor:pointer; }
+
+.searching-state { padding:24px; text-align:center; color:var(--muted); font-size:.85rem; display:none; }
+.searching-state.visible { display:block; }
+.spin { display:inline-block; animation: spin .8s linear infinite; margin-right:6px; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+.error-state { padding:16px; color:#e07070; font-size:.83rem; display:none; background:rgba(184,72,72,.08); border-radius:10px; margin-top:12px; }
+.error-state.visible { display:block; }
+
+/* ── GENRE SECTIONS ── */
+.genre-section { max-width:900px; margin:24px auto 0; padding:0 14px; }
+.genre-header { display:flex; align-items:center; gap:12px; margin-bottom:12px; padding-left:2px; }
+.genre-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+.genre-title { font-family:'Playfair Display',serif; font-size:1.05rem; font-style:italic; color:var(--text); }
+.genre-count { font-size:.72rem; color:var(--muted); margin-left:auto; white-space:nowrap; }
+.genre-line { flex:1; height:1px; background:var(--border); }
+
+/* ── FILM CARD ── */
+.film-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:14px; margin-bottom:9px; cursor:pointer;
+  transition:border-color .2s, background .2s, transform .15s;
+  overflow:hidden; position:relative;
+}
+.film-card::before {
+  content:''; position:absolute; left:0;top:0;bottom:0; width:3px;
+  background:var(--gc,var(--border)); border-radius:14px 0 0 14px;
+}
+.film-card:active { transform:scale(.99); }
+.film-card.watched { background:#15201a; border-color:#2a4236; }
+.film-card.watched::before { background:var(--watched); }
+
+.card-top { display:flex; align-items:stretch; }
+.poster-wrap { flex-shrink:0; width:68px; position:relative; overflow:hidden; background:#111; }
+.poster-wrap img { width:100%; height:100%; object-fit:cover; display:block; transition:transform .3s; }
+.film-card:hover .poster-wrap img { transform:scale(1.05); }
+.poster-ph { width:100%; min-height:102px; height:100%; display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:1.4rem; }
+.poster-overlay { position:absolute; inset:0; background:rgba(74,158,111,.4); display:flex; align-items:center; justify-content:center; font-size:1.5rem; opacity:0; transition:opacity .2s; }
+.film-card.watched .poster-overlay { opacity:1; }
+
+.card-content { flex:1; min-width:0; padding:11px 12px 11px 14px; display:flex; flex-direction:column; justify-content:space-between; gap:6px; }
+.card-row1 { display:flex; align-items:flex-start; gap:8px; }
+.card-main { flex:1; min-width:0; }
+.film-title { font-family:'Playfair Display',serif; font-size:.97rem; font-weight:700; color:var(--text); line-height:1.3; }
+.film-card.watched .film-title { color:var(--watched); }
+.film-dir { font-size:.68rem; color:var(--muted); margin-top:2px; font-style:italic; }
+.film-meta { display:flex; flex-wrap:wrap; gap:4px; margin-top:5px; align-items:center; }
+.film-year { font-size:.68rem; color:var(--muted); }
+.film-tag { font-size:.57rem; text-transform:uppercase; letter-spacing:.07em; padding:1px 6px; border-radius:100px; border:1px solid; font-weight:500; }
+.expand-ico { flex-shrink:0; color:var(--muted); transition:transform .25s,color .2s; font-size:.8rem; margin-top:1px; }
+.film-card.open .expand-ico { transform:rotate(180deg); color:var(--accent); }
+.card-row2 { display:flex; align-items:center; justify-content:space-between; }
+.watch-btn {
+  width:24px; height:24px; border-radius:50%;
+  border:2px solid var(--border2); background:transparent; cursor:pointer;
+  transition:all .2s; display:flex; align-items:center; justify-content:center;
+  color:transparent; font-size:.65rem;
+}
+.watch-btn:active { transform:scale(.88); }
+.film-card.watched .watch-btn { background:var(--watched); border-color:var(--watched); color:#fff; }
+.film-orig { font-size:.63rem; color:var(--muted2); font-style:italic; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:160px; }
+
+.film-synopsis { font-size:.8rem; color:var(--muted); line-height:1.6; padding:10px 14px 14px; border-top:1px solid var(--border); display:none; }
+.film-card.open .film-synopsis { display:block; }
+
+/* delete btn */
+.del-btn { font-size:.65rem; color:var(--muted2); background:none; border:none; cursor:pointer; padding:2px 6px; border-radius:4px; transition:color .2s; }
+.del-btn:hover { color:#e07070; }
+
+/* genre color vars */
+.gc-terror   { --gc:var(--terror); }
+.gc-western  { --gc:var(--western); }
+.gc-historico{ --gc:var(--historico); }
+.gc-acao     { --gc:var(--acao); }
+.gc-romance  { --gc:var(--romance); }
+.gc-suspense { --gc:var(--suspense); }
+
+.tag-drama    { color:var(--drama);    border-color:var(--drama);    background:rgba(201,169,110,.08); }
+.tag-terror   { color:var(--terror);   border-color:var(--terror);   background:rgba(184,72,72,.08); }
+.tag-western  { color:var(--western);  border-color:var(--western);  background:rgba(192,122,58,.08); }
+.tag-romance  { color:var(--romance);  border-color:var(--romance);  background:rgba(201,110,158,.08); }
+.tag-acao     { color:var(--acao);     border-color:var(--acao);     background:rgba(110,158,201,.08); }
+.tag-historico{ color:var(--historico);border-color:var(--historico);background:rgba(158,201,110,.08); }
+.tag-suspense { color:var(--suspense); border-color:var(--suspense); background:rgba(139,127,186,.08); }
+.tag-guerra   { color:var(--guerra);   border-color:var(--guerra);   background:rgba(158,205,201,.08); }
+.dot-terror   { background:var(--terror); }
+.dot-western  { background:var(--western); }
+.dot-historico{ background:var(--historico); }
+.dot-acao     { background:var(--acao); }
+.dot-romance  { background:var(--romance); }
+.dot-suspense { background:var(--suspense); }
+.dot-drama    { background:var(--drama); }
+
+/* empty genre */
+.genre-empty { font-size:.78rem; color:var(--muted2); font-style:italic; padding:8px 4px 4px; }
+
+/* toast */
+.toast {
+  position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(20px);
+  background:var(--surface2); border:1px solid var(--border2);
+  border-radius:100px; padding:9px 20px; font-size:.8rem; color:var(--text);
+  z-index:300; opacity:0; transition:opacity .25s, transform .25s;
+  pointer-events:none; white-space:nowrap;
+}
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Minha Lista de Filmes</h1>
+  <p>Toque para ver sinopse · Marque os que assistiu</p>
+  <div class="counter">
+    <div>🎬 <span class="c-a" id="ctotal">0</span></div>
+    <div>✅ <span class="c-w" id="cwatched">0</span></div>
+    <div>⏳ <span class="c-m" id="cremaining">0</span></div>
+  </div>
+</header>
+
+<div id="app"></div>
+
+<!-- FAB -->
+<button class="fab" id="fabBtn" title="Adicionar filme">＋</button>
+
+<!-- MODAL -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2>Adicionar Filme</h2>
+    <p>Digite o título e a IA busca tudo automaticamente</p>
+
+    <div class="search-row">
+      <input class="search-input" id="searchInput" placeholder="Ex: Duna, O Poderoso Chefão…" autocomplete="off">
+      <button class="btn-search" id="searchBtn">Buscar</button>
+    </div>
+
+    <div class="searching-state" id="searchingState">
+      <span class="spin">⟳</span> Buscando informações…
+    </div>
+    <div class="error-state" id="errorState"></div>
+
+    <div class="search-result" id="searchResult">
+      <div class="result-inner">
+        <div class="result-poster" id="resultPoster"></div>
+        <div class="result-info">
+          <div class="result-title" id="resultTitle"></div>
+          <div class="result-orig" id="resultOrig"></div>
+          <div class="result-dir" id="resultDir"></div>
+          <div class="result-meta" id="resultMeta"></div>
+          <div class="result-synopsis" id="resultSynopsis"></div>
+        </div>
+      </div>
+      <div class="result-actions">
+        <button class="btn-add" id="btnAdd">＋ Adicionar à lista</button>
+        <button class="btn-cancel" id="btnCancel">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── STORAGE KEY ───────────────────────────────────────────────
+const STORAGE_KEY = 'filmes_lista_v2';
+
+// ─── GENRE CONFIG ──────────────────────────────────────────────
+const GENRE_SECTIONS = [
+  { key:'terror',    label:'Terror & Suspense Sobrenatural', dot:'dot-terror',    gc:'gc-terror' },
+  { key:'western',   label:'Western',                        dot:'dot-western',   gc:'gc-western' },
+  { key:'historico', label:'Drama Histórico & de Época',     dot:'dot-historico', gc:'gc-historico' },
+  { key:'suspense',  label:'Suspense & Thriller',            dot:'dot-suspense',  gc:'gc-suspense' },
+  { key:'romance',   label:'Desejo, Amor & Tragédia',        dot:'dot-romance',   gc:'gc-romance' },
+  { key:'drama',     label:'Drama',                          dot:'dot-drama',     gc:'gc-historico' },
+  { key:'outros',    label:'Outros',                         dot:'dot-acao',      gc:'gc-acao' },
+];
+
+const TAG_CLASS = { drama:'tag-drama',terror:'tag-terror',western:'tag-western',romance:'tag-romance',acao:'tag-acao',historico:'tag-historico',suspense:'tag-suspense',guerra:'tag-guerra' };
+const TAG_LABEL = { drama:'Drama',terror:'Terror',western:'Western',romance:'Romance',acao:'Ação',historico:'Histórico',suspense:'Suspense',guerra:'Guerra' };
+
+// ─── INITIAL DATA ──────────────────────────────────────────────
+const INITIAL_FILMS = [
+  { id:1,  title:"Malena",                      orig:"Malèna",                          year:2000, dir:"Giuseppe Tornatore",   genres:["drama","romance","guerra"],      poster:"https://image.tmdb.org/t/p/w342/aEhS3PxFaOAiEQeJHLKfuBGIR4Z.jpg", synopsis:"Em 1941, na Sicília ocupada pela guerra, o adolescente Renato nutre uma paixão obsessiva por Malena (Monica Bellucci), a viúva mais bela da cidade. Enquanto ele a observa em segredo, ela enfrenta a hipocrisia e o julgamento cruel de toda a comunidade — invejada pelas mulheres, cobiçada pelos homens, abandonada pela própria sociedade." },
+  { id:2,  title:"Hostiles",                    orig:"Hostiles",                        year:2017, dir:"Scott Cooper",          genres:["western","drama"],               poster:"https://image.tmdb.org/t/p/w342/mBKc3gOo9r6f4cyCFiJBivFMaY7.jpg", synopsis:"Em 1892, o capitão Joseph Blocker (Christian Bale) recebe a missão de escoltar um chefe cheyenne com câncer terminal de volta à sua terra natal em Montana. Inimigos históricos são forçados a se proteger mutuamente, descobrindo humanidade onde só esperavam ódio." },
+  { id:3,  title:"A Vila",                      orig:"The Village",                     year:2004, dir:"M. Night Shyamalan",   genres:["suspense","drama"],              poster:"https://image.tmdb.org/t/p/w342/7deSg9PXdF7UmEGbVQjDmXuQNqv.jpg", synopsis:"Em 1897, os moradores de um vilarejo isolado vivem sob o terror de criaturas misteriosas que habitam a floresta — 'Aquelas de Quem Não Falamos'. Quando Lucius Hunt (Joaquin Phoenix) desafia os limites proibidos, um amor ameaçado por segredos coloca tudo em risco." },
+  { id:4,  title:"Resgate Suicida",             orig:"The Thicket",                     year:2024, dir:"Elliott Lester",        genres:["western","drama","acao"],        poster:"https://image.tmdb.org/t/p/w342/vKxL5kFQ1ZQHdnQY40bUq0GqLlE.jpg", synopsis:"No Texas do início do século XX, o jovem Jack embarca numa missão desesperada para resgatar sua irmã sequestrada por uma perigosa gangue. Para isso, une forças com o caçador de recompensas excêntrico vivido por Peter Dinklage." },
+  { id:5,  title:"Narciso Negro",               orig:"Black Narcissus",                 year:1947, dir:"Powell & Pressburger",  genres:["drama"],                         poster:"https://image.tmdb.org/t/p/w342/bh4rsTRFOFlK2H7cWVWvXCqRWKU.jpg", synopsis:"Um grupo de freiras, lideradas pela jovem Irmã Clodagh (Deborah Kerr), parte para estabelecer um convento no alto do Himalaia. Isoladas pela altitude e pela beleza perturbadora da paisagem, as religiosas começam a sucumbir às suas repressões mais profundas." },
+  { id:6,  title:"Doce Vingança",               orig:"I Spit on Your Grave",            year:2010, dir:"Steven R. Monroe",      genres:["terror","suspense"],             poster:"https://image.tmdb.org/t/p/w342/2yXjhMHRzWi9vfxXBZ0PnEr0VZq.jpg", synopsis:"Jennifer Hills, escritora, busca paz em um chalé isolado para escrever seu próximo livro. O que deveria ser um retiro tranquilo se transforma em um pesadelo de violência brutal. O que se segue é uma história perturbadora de sobrevivência e vingança implacável." },
+  { id:7,  title:"Desejo e Reparação",          orig:"Atonement",                       year:2007, dir:"Joe Wright",            genres:["drama","romance","guerra"],      poster:"https://image.tmdb.org/t/p/w342/txnMFT7Mhq1SakZPMSS5JVqOL3u.jpg", synopsis:"Inglaterra, 1935. A adolescente Briony (Saoirse Ronan) comete uma mentira trágica, destruindo o romance entre sua irmã Cecilia (Keira Knightley) e Robbie Turner (James McAvoy). A culpa e o desejo de expiação perseguem Briony por décadas, enquanto a guerra separa os amantes." },
+  { id:8,  title:"Semmelweis",                  orig:"Semmelweis",                      year:2023, dir:"Lajos Koltai",          genres:["historico","drama"],             poster:"https://image.tmdb.org/t/p/w342/nOl4Z1RJOeWq7fLjvCsTt2fpWk.jpg", synopsis:"Baseado na vida do médico húngaro Ignaz Semmelweis, pioneiro que descobriu que médicos com as mãos sujas causavam mortes por febre puerperal. Sua luta para convencer a medicina da época é um relato tocante sobre como a verdade científica pode ser perigosa." },
+  { id:9,  title:"Pássaro Branco",              orig:"White Bird: A Wonder Story",      year:2023, dir:"Marc Forster",          genres:["drama","guerra"],                poster:"https://image.tmdb.org/t/p/w342/t3T4tCAHhJCbvhXNKzEumqSQFJN.jpg", synopsis:"A avó Sara (Helen Mirren) conta ao neto sua história durante a ocupação nazista na França. Aos 15 anos, foi escondida por um jovem colega com poliomielite, arriscando tudo por ela. Um relato de coragem, amor platônico e humanidade em tempos sombrios." },
+  { id:10, title:"A Lenda do Cavaleiro sem Cabeça", orig:"Sleepy Hollow",              year:1999, dir:"Tim Burton",             genres:["terror","suspense"],             poster:"https://image.tmdb.org/t/p/w342/iC4i4kRUhJMEEMEkKXYaJIqbQWN.jpg", synopsis:"Em 1799, o detetive Ichabod Crane (Johnny Depp), cético e excêntrico, é enviado ao vilarejo de Sleepy Hollow para investigar decapitações inexplicáveis. Os moradores culpam o Cavaleiro sem Cabeça — e Crane terá que confrontar os limites da razão." },
+  { id:11, title:"A Colina Escarlate",          orig:"Crimson Peak",                   year:2015, dir:"Guillermo del Toro",    genres:["terror","romance","drama"],      poster:"https://image.tmdb.org/t/p/w342/xfvBfSz5DLWXzDHAqpV39rLiC1s.jpg", synopsis:"A jovem escritora Edith (Mia Wasikowska) apaixona-se pelo misterioso Sir Thomas Sharpe (Tom Hiddleston) e muda-se para o seu decadente castelo inglês. Fantasmas surgem nas paredes — mas o maior perigo vem dos segredos que a mansão esconde." },
+  { id:12, title:"Perfume",                     orig:"Perfume: The Story of a Murderer",year:2006, dir:"Tom Tykwer",           genres:["drama","suspense"],              poster:"https://image.tmdb.org/t/p/w342/qbJNEgEDZlDNwIPPMnDmIkHhGpH.jpg", synopsis:"Na França do século XVIII, Grenouille (Ben Whishaw) nasce sem cheiro próprio mas com um olfato sobre-humano. Obcecado em capturar o perfume perfeito, torna-se assassino em série. Um thriller perturbador sobre gênio, obsessão e a perversão da arte." },
+  { id:13, title:"A Bruxa",                     orig:"The VVitch",                      year:2015, dir:"Robert Eggers",         genres:["terror","drama"],                poster:"https://image.tmdb.org/t/p/w342/wGkWEMbGHcBnVj0qRmx5TKRCrSb.jpg", synopsis:"Nova Inglaterra, 1630. Uma família puritana se instala numa fazenda isolada às bordas de uma floresta densa. Quando o bebê recém-nascido desaparece, o medo, a culpa religiosa e a paranoia corroem os vínculos familiares — enquanto algo sinistro espreita na floresta." },
+  { id:14, title:"Os Outros",                   orig:"The Others",                      year:2001, dir:"Alejandro Amenábar",    genres:["terror","suspense"],             poster:"https://image.tmdb.org/t/p/w342/cxHNKLvGBFHpflVMdNp7OqxN3lh.jpg", synopsis:"Numa nebulosa ilha britânica, Grace (Nicole Kidman) cuida dos filhos que não toleram luz solar. Quando três novos empregados chegam, fenômenos perturbadores começam a acontecer — e a verdade sobre a mansão é mais sombria do que qualquer fantasma." },
+  { id:15, title:"Nosferatu",                   orig:"Nosferatu",                       year:2024, dir:"Robert Eggers",         genres:["terror","drama"],                poster:"https://image.tmdb.org/t/p/w342/5qHoazZiaLe7oFBok7XlUhg59tF.jpg", synopsis:"Alemanha, século XIX. Thomas Hutter viaja à Transilvânia para fechar um negócio com o Conde Orlok (Bill Skarsgård). Sua esposa Ellen (Lily-Rose Depp) é consumida por visões terríveis. Uma obsessão vampírica ancestral atravessa séculos para destruir tudo o que ele ama." },
+  { id:16, title:"O Pálido Olho Azul",          orig:"The Pale Blue Eye",               year:2022, dir:"Scott Cooper",          genres:["suspense","drama"],              poster:"https://image.tmdb.org/t/p/w342/5Hd9aZYHBMTn37dEAfnzHFbSyNh.jpg", synopsis:"Em 1830, o detetive Augustus Landor (Christian Bale) investiga um assassinato brutal em West Point. Faz uma aliança improvável com um jovem cadete de mente brilhante — um tal Edgar Allan Poe (Harry Melling). Um noir gótico no alvorecer da América." },
+  { id:17, title:"Apóstolo",                    orig:"Apostle",                         year:2018, dir:"Gareth Evans",          genres:["terror","suspense"],             poster:"https://image.tmdb.org/t/p/w342/jzD6Jt0c7YJiCbQxQ6U5TmHmMIh.jpg", synopsis:"Em 1905, Thomas Richardson (Dan Stevens) viaja a uma ilha remota para resgatar sua irmã sequestrada por um culto religioso. Ao se infiltrar entre os seguidores do profeta Malcolm (Michael Sheen), descobre segredos sombrios sobre o que esse culto verdadeiramente adora." },
+  { id:18, title:"Longe Deste Insensato Mundo", orig:"Far from the Madding Crowd",      year:2015, dir:"Thomas Vinterberg",     genres:["romance","drama"],               poster:"https://image.tmdb.org/t/p/w342/bZ4tD5DioHv0OLmWbfTIFSQO0y2.jpg", synopsis:"Dorset, 1827. A jovem e independente Bathsheba Everdene (Carey Mulligan) decide administrar sozinha a fazenda que herda do tio. Três homens muito diferentes disputam seu coração enquanto ela navega entre liberdade e amor na era vitoriana." },
+  { id:19, title:"Bata Antes de Entrar",        orig:"Knock Knock",                     year:2015, dir:"Eli Roth",              genres:["suspense","terror"],             poster:"https://image.tmdb.org/t/p/w342/kA7PdnwXDNnAF0kTJBt5DcqIBlC.jpg", synopsis:"Evan Webber (Keanu Reeves), pai de família dedicado, passa o fim de semana sozinho. Durante uma tempestade, duas jovens misteriosas batem à sua porta. O que começa como hospitalidade inocente rapidamente se transforma em um pesadelo de manipulação e caos." },
+  { id:20, title:"O Estado Livre de Jones",     orig:"Free State of Jones",             year:2016, dir:"Gary Ross",             genres:["historico","drama","guerra"],    poster:"https://image.tmdb.org/t/p/w342/3SQWJB4D4TKqv9CWfEsJpNVBXqX.jpg", synopsis:"Baseado em fatos reais. Durante a Guerra Civil americana, Newton Knight (Matthew McConaughey) deserta do Exército Confederado e une escravizados fugitivos e fazendeiros para fundar um território livre e igualitário no Mississippi." },
+  { id:21, title:"O Homem Invisível",           orig:"The Invisible Man",               year:2020, dir:"Leigh Whannell",        genres:["terror","suspense","acao"],      poster:"https://image.tmdb.org/t/p/w342/mSrgxGALVZ68nAa7Mji0pcn8bRp.jpg", synopsis:"Cecilia (Elisabeth Moss) foge de um relacionamento abusivo com um cientista brilhante. Quando ele supostamente morre, ela começa a acreditar que forjou a própria morte e está usando tecnologia de invisibilidade para persegui-la. Thriller intenso sobre abuso e trauma." },
+  { id:22, title:"O Grande Diabolik",           orig:"Danger: Diabolik",                year:1968, dir:"Mario Bava",            genres:["acao","suspense"],               poster:"https://image.tmdb.org/t/p/w342/2rj0gVrFBpT2VdJNqRFUPMpUXez.jpg", synopsis:"Diabolik (John Phillip Law) é um ladrão genial que rouba fortunas com elegância para sua amante Eva Kant (Marisa Mell). Um inspetor implacável o persegue enquanto ele planeja seu maior golpe. Clássico cult do pop italiano dos anos 60, com trilha de Ennio Morricone." },
+];
+
+// ─── STATE ─────────────────────────────────────────────────────
+let state = { films: [], watched: [], nextId: 100 };
+const openSet = new Set();
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      state = JSON.parse(saved);
+    } else {
+      state.films = INITIAL_FILMS;
+      state.nextId = 200;
+      saveState();
+    }
+  } catch(e) {
+    state.films = INITIAL_FILMS;
+    state.nextId = 200;
+  }
+}
+
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+}
+
+// ─── GENRE ASSIGNMENT ──────────────────────────────────────────
+function primaryGenre(genres) {
+  const order = ['terror','western','historico','suspense','romance','drama'];
+  for (const g of order) { if (genres.includes(g)) return g; }
+  return 'outros';
+}
+
+// ─── RENDER ────────────────────────────────────────────────────
+function tagHtml(genres) {
+  return genres.map(g => TAG_CLASS[g]
+    ? `<span class="film-tag ${TAG_CLASS[g]}">${TAG_LABEL[g]}</span>`
+    : `<span class="film-tag" style="color:var(--muted);border-color:var(--border2)">${g}</span>`
+  ).join('');
+}
+
+function cardHtml(film, gcClass) {
+  const isW = state.watched.includes(film.id);
+  const isO = openSet.has(film.id);
+  const poster = film.poster
+    ? `<img src="${film.poster}" alt="${film.title}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="poster-ph" style="display:none">🎬</div>`
+    : `<div class="poster-ph">🎬</div>`;
+  return `
+  <div class="film-card ${gcClass}${isW?' watched':''}${isO?' open':''}" data-id="${film.id}">
+    <div class="card-top">
+      <div class="poster-wrap">${poster}<div class="poster-overlay">✓</div></div>
+      <div class="card-content">
+        <div class="card-row1">
+          <div class="card-main">
+            <div class="film-title">${film.title}</div>
+            <div class="film-dir">Dir. ${film.dir}</div>
+            <div class="film-meta">
+              <span class="film-year">${film.year}</span>
+              ${tagHtml(film.genres)}
+            </div>
+          </div>
+          <div class="expand-ico">▾</div>
+        </div>
+        <div class="card-row2">
+          <button class="watch-btn" data-wid="${film.id}">${isW?'✓':''}</button>
+          <span class="film-orig">${film.orig}</span>
+          <button class="del-btn" data-did="${film.id}" title="Remover">✕</button>
+        </div>
+      </div>
+    </div>
+    <div class="film-synopsis">${film.synopsis}</div>
+  </div>`;
+}
+
+function render() {
+  const app = document.getElementById('app');
+  let html = '';
+
+  for (const section of GENRE_SECTIONS) {
+    const sectionFilms = state.films.filter(f => primaryGenre(f.genres) === section.key);
+    if (!sectionFilms.length) continue;
+    const wCount = sectionFilms.filter(f => state.watched.includes(f.id)).length;
+    html += `<div class="genre-section">
+      <div class="genre-header">
+        <div class="genre-dot ${section.dot}"></div>
+        <div class="genre-title">${section.label}</div>
+        <div class="genre-line"></div>
+        <div class="genre-count">${wCount}/${sectionFilms.length}</div>
+      </div>
+      ${sectionFilms.map(f => cardHtml(f, section.gc)).join('')}
+    </div>`;
+  }
+
+  app.innerHTML = html;
+  updateCounter();
+  bindCardEvents();
+}
+
+function updateCounter() {
+  document.getElementById('ctotal').textContent = state.films.length;
+  document.getElementById('cwatched').textContent = state.watched.length;
+  document.getElementById('cremaining').textContent = state.films.length - state.watched.length;
+}
+
+function bindCardEvents() {
+  document.querySelectorAll('.film-card').forEach(card => {
+    card.addEventListener('click', function(e) {
+      if (e.target.closest('.watch-btn') || e.target.closest('.del-btn')) return;
+      const id = +this.dataset.id;
+      this.classList.toggle('open');
+      openSet.has(id) ? openSet.delete(id) : openSet.add(id);
+    });
+  });
+  document.querySelectorAll('.watch-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const id = +this.dataset.wid;
+      if (state.watched.includes(id)) state.watched = state.watched.filter(w => w !== id);
+      else state.watched.push(id);
+      saveState(); render();
+    });
+  });
+  document.querySelectorAll('.del-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const id = +this.dataset.did;
+      const film = state.films.find(f => f.id === id);
+      if (confirm(`Remover "${film?.title}" da lista?`)) {
+        state.films = state.films.filter(f => f.id !== id);
+        state.watched = state.watched.filter(w => w !== id);
+        openSet.delete(id);
+        saveState(); render();
+        showToast(`"${film?.title}" removido`);
+      }
+    });
+  });
+}
+
+// ─── TOAST ─────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+// ─── MODAL ─────────────────────────────────────────────────────
+const backdrop = document.getElementById('modalBackdrop');
+const searchInput = document.getElementById('searchInput');
+const searchBtn = document.getElementById('searchBtn');
+const searchingState = document.getElementById('searchingState');
+const errorState = document.getElementById('errorState');
+const searchResult = document.getElementById('searchResult');
+
+let pendingFilm = null;
+
+document.getElementById('fabBtn').addEventListener('click', () => {
+  backdrop.classList.add('open');
+  searchInput.value = '';
+  resetSearchUI();
+  setTimeout(() => searchInput.focus(), 350);
+});
+
+backdrop.addEventListener('click', e => {
+  if (e.target === backdrop) closeModal();
+});
+
+function closeModal() {
+  backdrop.classList.remove('open');
+  pendingFilm = null;
+}
+
+function resetSearchUI() {
+  searchingState.classList.remove('visible');
+  errorState.classList.remove('visible');
+  searchResult.classList.remove('visible');
+  pendingFilm = null;
+}
+
+searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+searchBtn.addEventListener('click', doSearch);
+
+document.getElementById('btnCancel').addEventListener('click', resetSearchUI);
+document.getElementById('btnAdd').addEventListener('click', addPendingFilm);
+
+async function doSearch() {
+  const query = searchInput.value.trim();
+  if (!query) return;
+
+  resetSearchUI();
+  searchBtn.disabled = true;
+  searchingState.classList.add('visible');
+
+  try {
+    const filmData = await searchFilmWithAI(query);
+    searchingState.classList.remove('visible');
+    searchBtn.disabled = false;
+
+    if (!filmData) throw new Error('Não encontrei informações para este filme.');
+
+    pendingFilm = filmData;
+    showResult(filmData);
+  } catch(err) {
+    searchingState.classList.remove('visible');
+    searchBtn.disabled = false;
+    errorState.textContent = '⚠ ' + (err.message || 'Erro ao buscar. Tente novamente.');
+    errorState.classList.add('visible');
+  }
+}
+
+async function searchFilmWithAI(title) {
+  const prompt = `Você é um especialista em cinema. O usuário digitou: "${title}"
+
+Retorne APENAS um objeto JSON válido com estas informações do filme (sem markdown, sem texto extra):
+{
+  "title": "Título em português (ou original se não tiver tradução)",
+  "orig": "Título original",
+  "year": 1234,
+  "dir": "Nome do diretor",
+  "genres": ["lista", "de", "gêneros em português lowercase — use apenas: drama, terror, western, romance, acao, historico, suspense, guerra"],
+  "synopsis": "Sinopse em português com 2-3 frases, direto ao ponto, sem spoilers de fim",
+  "poster_path": "caminho do poster no TMDB ex: /abcd1234.jpg — se não souber com certeza, coloque null",
+  "tmdb_id": 12345
+}
+
+Escolha o filme mais famoso/relevante que corresponde ao título digitado. Responda APENAS o JSON.`;
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+
+  if (!response.ok) throw new Error('Erro na API. Tente novamente.');
+  const data = await response.json();
+  const text = data.content?.[0]?.text || '';
+
+  // Parse JSON from response
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error('Resposta inválida da IA.');
+
+  const film = JSON.parse(jsonMatch[0]);
+
+  // Build poster URL
+  if (film.poster_path && film.poster_path !== 'null') {
+    film.poster = `https://image.tmdb.org/t/p/w342${film.poster_path}`;
+  } else {
+    film.poster = null;
+  }
+
+  return film;
+}
+
+function showResult(film) {
+  // Poster
+  const posterEl = document.getElementById('resultPoster');
+  if (film.poster) {
+    posterEl.innerHTML = `<img src="${film.poster}" alt="${film.title}" onerror="this.parentElement.innerHTML='<div class=\\'no-poster\\'>🎬</div>'">`;
+  } else {
+    posterEl.innerHTML = `<div class="no-poster">🎬</div>`;
+  }
+
+  document.getElementById('resultTitle').textContent = film.title;
+  document.getElementById('resultOrig').textContent = film.orig !== film.title ? film.orig : '';
+  document.getElementById('resultDir').textContent = film.dir ? `Dir. ${film.dir}` : '';
+  document.getElementById('resultMeta').innerHTML =
+    `<span class="result-year">${film.year}</span>` +
+    (film.genres || []).map(g => `<span class="result-tag">${g}</span>`).join('');
+  document.getElementById('resultSynopsis').textContent = film.synopsis || '';
+
+  searchResult.classList.add('visible');
+}
+
+function addPendingFilm() {
+  if (!pendingFilm) return;
+
+  // Check duplicate
+  const exists = state.films.some(f =>
+    f.orig?.toLowerCase() === pendingFilm.orig?.toLowerCase() ||
+    f.title?.toLowerCase() === pendingFilm.title?.toLowerCase()
+  );
+  if (exists) {
+    showToast('⚠ Este filme já está na lista!');
+    closeModal();
+    return;
+  }
+
+  const newFilm = {
+    id: state.nextId++,
+    title: pendingFilm.title,
+    orig: pendingFilm.orig || pendingFilm.title,
+    year: pendingFilm.year,
+    dir: pendingFilm.dir || '—',
+    genres: pendingFilm.genres || ['drama'],
+    poster: pendingFilm.poster || null,
+    synopsis: pendingFilm.synopsis || '',
+  };
+
+  state.films.push(newFilm);
+  saveState();
+  render();
+  closeModal();
+  showToast(`✓ "${newFilm.title}" adicionado!`);
+}
+
+// ─── INIT ──────────────────────────────────────────────────────
+loadState();
+render();
+</script>
+</body>
+</html>
