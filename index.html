@@ -327,6 +327,153 @@ header p { color:var(--muted); font-size:.72rem; letter-spacing:.08em; text-tran
 .thermo-popup-clear { font-size:.72rem; color:var(--muted2); background:none; border:1px solid var(--border2); border-radius:8px; padding:4px 12px; cursor:pointer; }
 .thermo-popup-clear:hover { color:#e07070; border-color:#e07070; }
 
+
+/* FILTER BAR */
+.filter-bar {
+  display: flex; align-items: center;
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 14px; margin: 10px 14px 0;
+  max-width: 872px; margin-left: auto; margin-right: auto;
+  overflow: hidden;
+}
+.filter-label {
+  font-size: .65rem; color: var(--muted); text-transform: uppercase;
+  letter-spacing: .07em; padding: 0 10px; white-space: nowrap;
+  border-right: 1px solid var(--border2); line-height: 44px; flex-shrink: 0;
+}
+.filter-levels { display: flex; flex: 1; align-items: center; padding: 0 6px; gap: 4px; }
+.flvl {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: flex-end;
+  gap: 3px; padding: 7px 2px;
+  border-radius: 8px; cursor: pointer; border: none;
+  background: transparent; transition: background .15s; position: relative;
+}
+.flvl:hover { background: var(--surface2); }
+.flvl.active { background: var(--surface2); }
+.flvl-bar { display: flex; gap: 2px; align-items: flex-end; }
+.flvl-bar .s { width: 4px; border-radius: 1px; background: var(--border2); }
+.flvl-bar .s:nth-child(1){height:4px;}
+.flvl-bar .s:nth-child(2){height:7px;}
+.flvl-bar .s:nth-child(3){height:10px;}
+.flvl-bar .s:nth-child(4){height:13px;}
+.flvl-bar .s:nth-child(5){height:16px;}
+.flvl[data-l="1"] .flvl-bar .s:nth-child(1){background:#4a9e6f;}
+.flvl[data-l="2"] .flvl-bar .s:nth-child(1){background:#4a9e6f;}
+.flvl[data-l="2"] .flvl-bar .s:nth-child(2){background:#8bc34a;}
+.flvl[data-l="3"] .flvl-bar .s:nth-child(1){background:#4a9e6f;}
+.flvl[data-l="3"] .flvl-bar .s:nth-child(2){background:#8bc34a;}
+.flvl[data-l="3"] .flvl-bar .s:nth-child(3){background:#f0c040;}
+.flvl[data-l="4"] .flvl-bar .s:nth-child(1){background:#4a9e6f;}
+.flvl[data-l="4"] .flvl-bar .s:nth-child(2){background:#8bc34a;}
+.flvl[data-l="4"] .flvl-bar .s:nth-child(3){background:#f0c040;}
+.flvl[data-l="4"] .flvl-bar .s:nth-child(4){background:#e07830;}
+.flvl[data-l="5"] .flvl-bar .s:nth-child(1){background:#4a9e6f;}
+.flvl[data-l="5"] .flvl-bar .s:nth-child(2){background:#8bc34a;}
+.flvl[data-l="5"] .flvl-bar .s:nth-child(3){background:#f0c040;}
+.flvl[data-l="5"] .flvl-bar .s:nth-child(4){background:#e07830;}
+.flvl[data-l="5"] .flvl-bar .s:nth-child(5){background:#c83030;}
+.flvl.active::after {
+  content:''; position:absolute; bottom:3px; left:50%; transform:translateX(-50%);
+  width:4px; height:4px; border-radius:50%; background:var(--accent);
+}
+.flvl-count { font-size:.58rem; color:var(--muted2); font-weight:500; line-height:1; }
+.flvl.active .flvl-count { color:var(--accent); }
+.filter-clear {
+  padding: 0 10px; border-left: 1px solid var(--border2);
+  font-size: .72rem; color: var(--muted2); cursor: pointer;
+  background: none; border-top:none; border-right:none; border-bottom:none;
+  line-height: 44px; white-space: nowrap; flex-shrink: 0; transition: color .15s;
+}
+.filter-clear:hover { color: #e07070; }
+.filter-clear.hidden { display: none; }
+/* Dim cards not matching filter */
+.film-card.filter-dim { opacity: .2; pointer-events: none; }
+
+
+/* THERMO EXPANDED inside synopsis */
+.thermo-expanded {
+  display: flex; align-items: flex-end; gap: 6px;
+  margin-top: 14px; padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.thermo-expanded-label {
+  font-size: .68rem; color: var(--muted); text-transform: uppercase;
+  letter-spacing: .07em; margin-bottom: 4px; flex-shrink: 0;
+  line-height: 1; padding-bottom: 2px;
+}
+.thermo-expanded-bar {
+  display: flex; gap: 5px; align-items: flex-end; flex: 1;
+}
+.thermo-expanded-bar .eseg {
+  flex: 1; border-radius: 4px; background: var(--border2);
+  cursor: pointer; transition: background .12s, transform .1s;
+}
+.thermo-expanded-bar .eseg:nth-child(1){height:16px;}
+.thermo-expanded-bar .eseg:nth-child(2){height:22px;}
+.thermo-expanded-bar .eseg:nth-child(3){height:28px;}
+.thermo-expanded-bar .eseg:nth-child(4){height:34px;}
+.thermo-expanded-bar .eseg:nth-child(5){height:40px;}
+.thermo-expanded-bar .eseg:hover { transform: scaleY(1.08); }
+.thermo-expanded-bar[data-level="1"] .eseg:nth-child(1){background:#4a9e6f;}
+.thermo-expanded-bar[data-level="2"] .eseg:nth-child(1){background:#4a9e6f;}
+.thermo-expanded-bar[data-level="2"] .eseg:nth-child(2){background:#8bc34a;}
+.thermo-expanded-bar[data-level="3"] .eseg:nth-child(1){background:#4a9e6f;}
+.thermo-expanded-bar[data-level="3"] .eseg:nth-child(2){background:#8bc34a;}
+.thermo-expanded-bar[data-level="3"] .eseg:nth-child(3){background:#f0c040;}
+.thermo-expanded-bar[data-level="4"] .eseg:nth-child(1){background:#4a9e6f;}
+.thermo-expanded-bar[data-level="4"] .eseg:nth-child(2){background:#8bc34a;}
+.thermo-expanded-bar[data-level="4"] .eseg:nth-child(3){background:#f0c040;}
+.thermo-expanded-bar[data-level="4"] .eseg:nth-child(4){background:#e07830;}
+.thermo-expanded-bar[data-level="5"] .eseg:nth-child(1){background:#4a9e6f;}
+.thermo-expanded-bar[data-level="5"] .eseg:nth-child(2){background:#8bc34a;}
+.thermo-expanded-bar[data-level="5"] .eseg:nth-child(3){background:#f0c040;}
+.thermo-expanded-bar[data-level="5"] .eseg:nth-child(4){background:#e07830;}
+.thermo-expanded-bar[data-level="5"] .eseg:nth-child(5){background:#c83030;}
+
+
+/* THERMO IN MODAL */
+.modal-thermo-wrap {
+  margin-top: 16px; padding: 14px 16px;
+  background: var(--surface3); border: 1px solid var(--border2);
+  border-radius: 14px; display: none;
+}
+.modal-thermo-wrap.visible { display: block; }
+.modal-thermo-label {
+  font-size: .72rem; color: var(--muted); text-transform: uppercase;
+  letter-spacing: .07em; margin-bottom: 12px;
+}
+.modal-thermo-bar {
+  display: flex; gap: 6px; align-items: flex-end;
+}
+.modal-thermo-bar .mseg {
+  flex: 1; border-radius: 5px; background: var(--border2);
+  cursor: pointer; transition: background .12s, transform .1s;
+}
+.modal-thermo-bar .mseg:nth-child(1){height:20px;}
+.modal-thermo-bar .mseg:nth-child(2){height:28px;}
+.modal-thermo-bar .mseg:nth-child(3){height:36px;}
+.modal-thermo-bar .mseg:nth-child(4){height:44px;}
+.modal-thermo-bar .mseg:nth-child(5){height:52px;}
+.modal-thermo-bar .mseg:hover { transform: scaleY(1.06); }
+.modal-thermo-bar[data-level="1"] .mseg:nth-child(1){background:#4a9e6f;}
+.modal-thermo-bar[data-level="2"] .mseg:nth-child(1){background:#4a9e6f;}
+.modal-thermo-bar[data-level="2"] .mseg:nth-child(2){background:#8bc34a;}
+.modal-thermo-bar[data-level="3"] .mseg:nth-child(1){background:#4a9e6f;}
+.modal-thermo-bar[data-level="3"] .mseg:nth-child(2){background:#8bc34a;}
+.modal-thermo-bar[data-level="3"] .mseg:nth-child(3){background:#f0c040;}
+.modal-thermo-bar[data-level="4"] .mseg:nth-child(1){background:#4a9e6f;}
+.modal-thermo-bar[data-level="4"] .mseg:nth-child(2){background:#8bc34a;}
+.modal-thermo-bar[data-level="4"] .mseg:nth-child(3){background:#f0c040;}
+.modal-thermo-bar[data-level="4"] .mseg:nth-child(4){background:#e07830;}
+.modal-thermo-bar[data-level="5"] .mseg:nth-child(1){background:#4a9e6f;}
+.modal-thermo-bar[data-level="5"] .mseg:nth-child(2){background:#8bc34a;}
+.modal-thermo-bar[data-level="5"] .mseg:nth-child(3){background:#f0c040;}
+.modal-thermo-bar[data-level="5"] .mseg:nth-child(4){background:#e07830;}
+.modal-thermo-bar[data-level="5"] .mseg:nth-child(5){background:#c83030;}
+.modal-thermo-hint { font-size:.7rem; color:var(--muted2); margin-top:10px; }
+.btn-add-disabled { opacity:.45; cursor:default; pointer-events:none; }
+
 /* TOAST */
 .toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--surface2); border:1px solid var(--border2); border-radius:100px; padding:9px 20px; font-size:.8rem; color:var(--text); z-index:300; opacity:0; transition:opacity .25s,transform .25s; pointer-events:none; white-space:nowrap; }
 .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
@@ -405,6 +552,18 @@ header p { color:var(--muted); font-size:.72rem; letter-spacing:.08em; text-tran
     <button class="list-tab" id="tabPending">⏳ A assistir</button>
     <button class="list-tab tab-watched" id="tabWatched">✓ Assistidos</button>
   </div>
+  <div class="filter-bar" id="filterBar">
+    <span class="filter-label">Interesse</span>
+    <div class="filter-levels" id="filterLevels">
+      <button class="flvl" data-l="1"><div class="flvl-bar"><div class="s"></div><div class="s"></div><div class="s"></div><div class="s"></div><div class="s"></div></div><div class="flvl-count" id="fc1">0</div></button>
+      <button class="flvl" data-l="2"><div class="flvl-bar"><div class="s"></div><div class="s"></div><div class="s"></div><div class="s"></div><div class="s"></div></div><div class="flvl-count" id="fc2">0</div></button>
+      <button class="flvl" data-l="3"><div class="flvl-bar"><div class="s"></div><div class="s"></div><div class="s"></div><div class="s"></div><div class="s"></div></div><div class="flvl-count" id="fc3">0</div></button>
+      <button class="flvl" data-l="4"><div class="flvl-bar"><div class="s"></div><div class="s"></div><div class="s"></div><div class="s"></div><div class="s"></div></div><div class="flvl-count" id="fc4">0</div></button>
+      <button class="flvl" data-l="5"><div class="flvl-bar"><div class="s"></div><div class="s"></div><div class="s"></div><div class="s"></div><div class="s"></div></div><div class="flvl-count" id="fc5">0</div></button>
+    </div>
+    <button class="filter-clear hidden" id="filterClear">✕ Todos</button>
+  </div>
+
   <div id="app">
     <div class="list-panel" id="panelPending"></div>
     <div class="list-panel" id="panelWatched"></div>
@@ -443,8 +602,20 @@ header p { color:var(--muted); font-size:.72rem; letter-spacing:.08em; text-tran
           <div class="result-synopsis" id="resultSynopsis"></div>
         </div>
       </div>
+      <!-- Thermometer interest selector -->
+      <div class="modal-thermo-wrap" id="modalThermoWrap">
+        <div class="modal-thermo-label">Qual seu nível de interesse?</div>
+        <div class="modal-thermo-bar" id="modalThermoBar" data-level="0">
+          <div class="mseg" data-n="1"></div>
+          <div class="mseg" data-n="2"></div>
+          <div class="mseg" data-n="3"></div>
+          <div class="mseg" data-n="4"></div>
+          <div class="mseg" data-n="5"></div>
+        </div>
+        <div class="modal-thermo-hint">Escolha um nível para adicionar o filme</div>
+      </div>
       <div class="result-actions">
-        <button class="btn-add" id="btnAdd">＋ Adicionar à lista</button>
+        <button class="btn-add btn-add-disabled" id="btnAdd">＋ Adicionar à lista</button>
         <button class="btn-cancel" id="btnCancel">← Voltar</button>
       </div>
     </div>
@@ -555,7 +726,7 @@ async function loadAllPosters() {
 }
 
 // ─── STATE ─────────────────────────────────────────────────────
-let state = { films: [], watched: [], nextId: 200, assistidosCollapsed: false, collapsedGenres: {}, collapsedWatchedGenres: {}, activeTab: 'pending', interest: {} };
+let state = { films: [], watched: [], nextId: 200, assistidosCollapsed: false, collapsedGenres: {}, collapsedWatchedGenres: {}, activeTab: 'pending', interest: {}, activeFilter: 0 };
 let driveFileId = null;
 let accessToken = null;
 let saveTimeout = null;
@@ -795,7 +966,19 @@ function cardHtml(film, gcClass, isWatchedCard=false) {
         </div>
       </div>
     </div>
-    <div class="film-synopsis">${film.synopsis||''}</div>
+    <div class="film-synopsis">
+      <div>${film.synopsis||''}</div>
+      <div class="thermo-expanded">
+        <div class="thermo-expanded-label">Interesse</div>
+        <div class="thermo-expanded-bar" data-id="${film.id}" data-level="${state.interest[film.id]||0}">
+          <div class="eseg" data-n="1"></div>
+          <div class="eseg" data-n="2"></div>
+          <div class="eseg" data-n="3"></div>
+          <div class="eseg" data-n="4"></div>
+          <div class="eseg" data-n="5"></div>
+        </div>
+      </div>
+    </div>
   </div>`;
 }
 
@@ -865,13 +1048,42 @@ function render() {
   document.getElementById('tabPending').onclick = () => { state.activeTab = 'pending'; render(); };
   document.getElementById('tabWatched').onclick = () => { state.activeTab = 'watched'; render(); };
 
+  // ── Filter counts & dim ─────────────────────────────────────────
+  updateFilterUI();
+
   bindCardEvents();
+}
+
+function updateFilterUI() {
+  // Count films per interest level (pending tab only for now)
+  const relevantFilms = state.films.filter(f => !state.watched.includes(f.id));
+  for (let l = 1; l <= 5; l++) {
+    const el = document.getElementById('fc' + l);
+    if (el) el.textContent = relevantFilms.filter(f => (state.interest[f.id]||0) === l).length;
+  }
+  // Active button
+  document.querySelectorAll('.flvl').forEach(btn => {
+    btn.classList.toggle('active', +btn.dataset.l === state.activeFilter);
+  });
+  // Clear button
+  const clr = document.getElementById('filterClear');
+  if (clr) clr.classList.toggle('hidden', state.activeFilter === 0);
+  // Dim cards
+  document.querySelectorAll('.film-card').forEach(card => {
+    if (state.activeFilter === 0) {
+      card.classList.remove('filter-dim');
+    } else {
+      const id = +card.dataset.id;
+      const lvl = state.interest[id] || 0;
+      card.classList.toggle('filter-dim', lvl !== state.activeFilter);
+    }
+  });
 }
 
 function bindCardEvents() {
   document.querySelectorAll('.film-card').forEach(card => {
     card.addEventListener('click', function(e) {
-      if (e.target.closest('.watch-btn') || e.target.closest('.del-btn') || e.target.closest('.thermo-mini')) return;
+      if (e.target.closest('.watch-btn') || e.target.closest('.del-btn') || e.target.closest('.thermo-mini') || e.target.closest('.thermo-expanded-bar')) return;
       const id = +this.dataset.id;
       this.classList.toggle('open');
       openSet.has(id) ? openSet.delete(id) : openSet.add(id);
@@ -906,6 +1118,27 @@ function bindCardEvents() {
     mini.addEventListener('click', e => {
       e.stopPropagation();
       openThermoPopup(mini);
+    });
+  });
+
+  // Thermometer expanded — direct click inside synopsis
+  document.querySelectorAll('.thermo-expanded-bar').forEach(bar => {
+    bar.querySelectorAll('.eseg').forEach(seg => {
+      seg.addEventListener('click', e => {
+        e.stopPropagation();
+        const id = bar.dataset.id;
+        const n = +seg.dataset.n;
+        const cur = +bar.dataset.level;
+        const newLevel = (cur === n) ? 0 : n;
+        bar.dataset.level = newLevel;
+        state.interest[id] = newLevel;
+        // Sync mini bar too
+        const mini = document.querySelector(`.thermo-mini[data-id="${id}"]`);
+        if (mini) mini.dataset.level = newLevel;
+        scheduleSave();
+        clearTimeout(window._thermoRenderTimer);
+        window._thermoRenderTimer = setTimeout(() => render(), 700);
+      });
     });
   });
 
@@ -962,6 +1195,9 @@ function resetSearchUI() {
   document.getElementById('errorState').classList.remove('visible');
   document.getElementById('searchResult').classList.remove('visible');
   document.getElementById('searchResultsList').style.display = 'none';
+  document.getElementById('modalThermoWrap').classList.remove('visible');
+  document.getElementById('modalThermoBar').dataset.level = '0';
+  document.getElementById('btnAdd').classList.add('btn-add-disabled');
   pendingFilm = null;
 }
 
@@ -1081,6 +1317,8 @@ function showResult(film) {
 
 function addPendingFilm() {
   if (!pendingFilm) return;
+  const level = +document.getElementById('modalThermoBar').dataset.level;
+  if (!level) return; // shouldn't happen — button is disabled until level chosen
   const exists = state.films.some(f =>
     (f.orig||'').toLowerCase() === (pendingFilm.orig||'').toLowerCase() ||
     f.title.toLowerCase() === pendingFilm.title.toLowerCase()
@@ -1097,11 +1335,11 @@ function addPendingFilm() {
     synopsis: pendingFilm.synopsis || '',
   };
   state.films.push(newFilm);
+  state.interest[newFilm.id] = level;
   scheduleSave();
   render();
   closeModal();
   showToast(`✓ "${newFilm.title}" adicionado!`);
-  // Cache poster for new film
   if (newFilm.poster) posterCache[newFilm.id] = newFilm.poster;
 }
 
@@ -1128,6 +1366,39 @@ function initLightbox() {
   });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
 }
+
+
+
+// ─── MODAL THERMOMETER ─────────────────────────────────────────
+document.getElementById('modalThermoBar').querySelectorAll('.mseg').forEach(seg => {
+  seg.addEventListener('click', e => {
+    e.stopPropagation();
+    const bar = document.getElementById('modalThermoBar');
+    const n = +seg.dataset.n;
+    const cur = +bar.dataset.level;
+    bar.dataset.level = (cur === n) ? 0 : n;
+    // Enable/disable add button
+    const addBtn = document.getElementById('btnAdd');
+    if (+bar.dataset.level > 0) {
+      addBtn.classList.remove('btn-add-disabled');
+    } else {
+      addBtn.classList.add('btn-add-disabled');
+    }
+  });
+});
+
+// ─── FILTER ────────────────────────────────────────────────────
+document.getElementById('filterLevels').querySelectorAll('.flvl').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const l = +btn.dataset.l;
+    state.activeFilter = (state.activeFilter === l) ? 0 : l;
+    updateFilterUI();
+  });
+});
+document.getElementById('filterClear').addEventListener('click', () => {
+  state.activeFilter = 0;
+  updateFilterUI();
+});
 
 // ─── THERMO POPUP ──────────────────────────────────────────────
 let _thermoActiveMini = null;
