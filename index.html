@@ -387,8 +387,8 @@ header p { color:var(--muted); font-size:.72rem; letter-spacing:.08em; text-tran
 }
 .filter-clear:hover { color: #e07070; }
 .filter-clear.hidden { display: none; }
-/* Dim cards not matching filter */
-.film-card.filter-dim { opacity: .2; pointer-events: none; }
+/* Hide cards not matching filter */
+.film-card.filter-dim { display: none; }
 
 
 /* THERMO EXPANDED inside synopsis */
@@ -1055,7 +1055,7 @@ function render() {
 }
 
 function updateFilterUI() {
-  // Count films per interest level (pending tab only for now)
+  // Count films per interest level
   const relevantFilms = state.films.filter(f => !state.watched.includes(f.id));
   for (let l = 1; l <= 5; l++) {
     const el = document.getElementById('fc' + l);
@@ -1068,7 +1068,8 @@ function updateFilterUI() {
   // Clear button
   const clr = document.getElementById('filterClear');
   if (clr) clr.classList.toggle('hidden', state.activeFilter === 0);
-  // Dim cards
+
+  // Show/hide cards
   document.querySelectorAll('.film-card').forEach(card => {
     if (state.activeFilter === 0) {
       card.classList.remove('filter-dim');
@@ -1076,6 +1077,16 @@ function updateFilterUI() {
       const id = +card.dataset.id;
       const lvl = state.interest[id] || 0;
       card.classList.toggle('filter-dim', lvl !== state.activeFilter);
+    }
+  });
+
+  // Hide genre sections that become entirely empty after filter
+  document.querySelectorAll('.genre-section, .assistidos-section').forEach(section => {
+    if (state.activeFilter === 0) {
+      section.style.display = '';
+    } else {
+      const visible = [...section.querySelectorAll('.film-card')].some(c => !c.classList.contains('filter-dim'));
+      section.style.display = visible ? '' : 'none';
     }
   });
 }
