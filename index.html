@@ -871,7 +871,7 @@ function render() {
 function bindCardEvents() {
   document.querySelectorAll('.film-card').forEach(card => {
     card.addEventListener('click', function(e) {
-      if (e.target.closest('.watch-btn') || e.target.closest('.del-btn')) return;
+      if (e.target.closest('.watch-btn') || e.target.closest('.del-btn') || e.target.closest('.thermo-mini')) return;
       const id = +this.dataset.id;
       this.classList.toggle('open');
       openSet.has(id) ? openSet.delete(id) : openSet.add(id);
@@ -1128,6 +1128,65 @@ function initLightbox() {
   });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
 }
+
+// ─── THERMO POPUP ──────────────────────────────────────────────
+let _thermoActiveMini = null;
+
+function openThermoPopup(mini) {
+  const popup = document.getElementById('thermoPopup');
+  const bar = document.getElementById('thermoPopupBar');
+  const id = mini.dataset.id;
+  bar.dataset.level = +(state.interest[id] || 0);
+  bar.dataset.filmid = id;
+  _thermoActiveMini = mini;
+  const rect = mini.getBoundingClientRect();
+  const left = Math.max(8, Math.min(rect.left - 60, window.innerWidth - 250));
+  const top = rect.top - 145;
+  popup.style.left = left + 'px';
+  popup.style.top = (top < 10 ? rect.bottom + 8 : top) + 'px';
+  popup.classList.add('open');
+}
+
+function closeThermoPopup() {
+  document.getElementById('thermoPopup').classList.remove('open');
+  _thermoActiveMini = null;
+}
+
+document.getElementById('thermoPopupBar').querySelectorAll('.pseg').forEach(seg => {
+  seg.addEventListener('click', e => {
+    e.stopPropagation();
+    const bar = document.getElementById('thermoPopupBar');
+    const n = +seg.dataset.n;
+    const cur = +bar.dataset.level;
+    const newLevel = (cur === n) ? 0 : n;
+    bar.dataset.level = newLevel;
+    const id = bar.dataset.filmid;
+    state.interest[id] = newLevel;
+    if (_thermoActiveMini) _thermoActiveMini.dataset.level = newLevel;
+    scheduleSave();
+    clearTimeout(window._thermoRenderTimer);
+    window._thermoRenderTimer = setTimeout(() => render(), 700);
+  });
+});
+
+document.getElementById('thermoPopupClear').addEventListener('click', e => {
+  e.stopPropagation();
+  const bar = document.getElementById('thermoPopupBar');
+  const id = bar.dataset.filmid;
+  state.interest[id] = 0;
+  bar.dataset.level = 0;
+  if (_thermoActiveMini) _thermoActiveMini.dataset.level = 0;
+  scheduleSave();
+  closeThermoPopup();
+  setTimeout(() => render(), 300);
+});
+
+document.addEventListener('click', e => {
+  const popup = document.getElementById('thermoPopup');
+  if (popup.classList.contains('open') && !popup.contains(e.target) && !e.target.closest('.thermo-mini')) {
+    closeThermoPopup();
+  }
+});
 </script>
 </body>
 </html>
