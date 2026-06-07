@@ -252,38 +252,80 @@ header p { color:var(--muted); font-size:.72rem; letter-spacing:.08em; text-tran
 .poster-wrap { cursor:zoom-in; }
 
 
-/* THERMOMETER BAR */
-.thermo-bar {
-  display: inline-flex; gap: 3px; align-items: flex-end;
-  padding: 4px 2px; cursor: pointer; flex-shrink: 0;
+/* THERMOMETER */
+/* Mini bar shown in card */
+.thermo-mini {
+  display: inline-flex; gap: 2px; align-items: flex-end;
+  padding: 6px 4px; cursor: pointer; flex-shrink: 0;
 }
-.thermo-bar .seg {
-  width: 6px; border-radius: 2px;
-  background: var(--border2);
-  transition: background .12s, transform .1s;
+.thermo-mini .seg {
+  width: 5px; border-radius: 2px; background: var(--border2);
+  transition: background .12s;
 }
-.thermo-bar .seg:nth-child(1) { height: 7px;  }
-.thermo-bar .seg:nth-child(2) { height: 10px; }
-.thermo-bar .seg:nth-child(3) { height: 13px; }
-.thermo-bar .seg:nth-child(4) { height: 16px; }
-.thermo-bar .seg:nth-child(5) { height: 19px; }
-.thermo-bar .seg:hover { transform: scaleY(1.25); }
+.thermo-mini .seg:nth-child(1) { height: 5px; }
+.thermo-mini .seg:nth-child(2) { height: 8px; }
+.thermo-mini .seg:nth-child(3) { height: 11px; }
+.thermo-mini .seg:nth-child(4) { height: 14px; }
+.thermo-mini .seg:nth-child(5) { height: 17px; }
 
-.thermo-bar[data-level="1"] .seg:nth-child(1) { background:#4a9e6f; }
-.thermo-bar[data-level="2"] .seg:nth-child(1) { background:#4a9e6f; }
-.thermo-bar[data-level="2"] .seg:nth-child(2) { background:#8bc34a; }
-.thermo-bar[data-level="3"] .seg:nth-child(1) { background:#4a9e6f; }
-.thermo-bar[data-level="3"] .seg:nth-child(2) { background:#8bc34a; }
-.thermo-bar[data-level="3"] .seg:nth-child(3) { background:#f0c040; }
-.thermo-bar[data-level="4"] .seg:nth-child(1) { background:#4a9e6f; }
-.thermo-bar[data-level="4"] .seg:nth-child(2) { background:#8bc34a; }
-.thermo-bar[data-level="4"] .seg:nth-child(3) { background:#f0c040; }
-.thermo-bar[data-level="4"] .seg:nth-child(4) { background:#e07830; }
-.thermo-bar[data-level="5"] .seg:nth-child(1) { background:#4a9e6f; }
-.thermo-bar[data-level="5"] .seg:nth-child(2) { background:#8bc34a; }
-.thermo-bar[data-level="5"] .seg:nth-child(3) { background:#f0c040; }
-.thermo-bar[data-level="5"] .seg:nth-child(4) { background:#e07830; }
-.thermo-bar[data-level="5"] .seg:nth-child(5) { background:#c83030; }
+.thermo-mini[data-level="1"] .seg:nth-child(1) { background:#4a9e6f; }
+.thermo-mini[data-level="2"] .seg:nth-child(1) { background:#4a9e6f; }
+.thermo-mini[data-level="2"] .seg:nth-child(2) { background:#8bc34a; }
+.thermo-mini[data-level="3"] .seg:nth-child(1) { background:#4a9e6f; }
+.thermo-mini[data-level="3"] .seg:nth-child(2) { background:#8bc34a; }
+.thermo-mini[data-level="3"] .seg:nth-child(3) { background:#f0c040; }
+.thermo-mini[data-level="4"] .seg:nth-child(1) { background:#4a9e6f; }
+.thermo-mini[data-level="4"] .seg:nth-child(2) { background:#8bc34a; }
+.thermo-mini[data-level="4"] .seg:nth-child(3) { background:#f0c040; }
+.thermo-mini[data-level="4"] .seg:nth-child(4) { background:#e07830; }
+.thermo-mini[data-level="5"] .seg:nth-child(1) { background:#4a9e6f; }
+.thermo-mini[data-level="5"] .seg:nth-child(2) { background:#8bc34a; }
+.thermo-mini[data-level="5"] .seg:nth-child(3) { background:#f0c040; }
+.thermo-mini[data-level="5"] .seg:nth-child(4) { background:#e07830; }
+.thermo-mini[data-level="5"] .seg:nth-child(5) { background:#c83030; }
+
+/* Popup picker */
+.thermo-popup {
+  position: fixed; z-index: 400;
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: 16px; padding: 14px 16px 10px;
+  box-shadow: 0 8px 40px rgba(0,0,0,.7);
+  display: none; flex-direction: column; align-items: center; gap: 10px;
+  min-width: 220px;
+}
+.thermo-popup.open { display: flex; }
+.thermo-popup-title { font-size: .7rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+.thermo-popup-bar {
+  display: flex; gap: 8px; align-items: flex-end;
+}
+.thermo-popup-bar .pseg {
+  border-radius: 4px; cursor: pointer;
+  background: var(--border2);
+  transition: background .12s, transform .15s;
+}
+.thermo-popup-bar .pseg:nth-child(1) { width:28px; height:20px; }
+.thermo-popup-bar .pseg:nth-child(2) { width:28px; height:28px; }
+.thermo-popup-bar .pseg:nth-child(3) { width:28px; height:36px; }
+.thermo-popup-bar .pseg:nth-child(4) { width:28px; height:44px; }
+.thermo-popup-bar .pseg:nth-child(5) { width:28px; height:52px; }
+.thermo-popup-bar .pseg:hover { transform: scaleY(1.08); }
+.thermo-popup-bar[data-level="1"] .pseg:nth-child(1) { background:#4a9e6f; }
+.thermo-popup-bar[data-level="2"] .pseg:nth-child(1) { background:#4a9e6f; }
+.thermo-popup-bar[data-level="2"] .pseg:nth-child(2) { background:#8bc34a; }
+.thermo-popup-bar[data-level="3"] .pseg:nth-child(1) { background:#4a9e6f; }
+.thermo-popup-bar[data-level="3"] .pseg:nth-child(2) { background:#8bc34a; }
+.thermo-popup-bar[data-level="3"] .pseg:nth-child(3) { background:#f0c040; }
+.thermo-popup-bar[data-level="4"] .pseg:nth-child(1) { background:#4a9e6f; }
+.thermo-popup-bar[data-level="4"] .pseg:nth-child(2) { background:#8bc34a; }
+.thermo-popup-bar[data-level="4"] .pseg:nth-child(3) { background:#f0c040; }
+.thermo-popup-bar[data-level="4"] .pseg:nth-child(4) { background:#e07830; }
+.thermo-popup-bar[data-level="5"] .pseg:nth-child(1) { background:#4a9e6f; }
+.thermo-popup-bar[data-level="5"] .pseg:nth-child(2) { background:#8bc34a; }
+.thermo-popup-bar[data-level="5"] .pseg:nth-child(3) { background:#f0c040; }
+.thermo-popup-bar[data-level="5"] .pseg:nth-child(4) { background:#e07830; }
+.thermo-popup-bar[data-level="5"] .pseg:nth-child(5) { background:#c83030; }
+.thermo-popup-clear { font-size:.72rem; color:var(--muted2); background:none; border:1px solid var(--border2); border-radius:8px; padding:4px 12px; cursor:pointer; }
+.thermo-popup-clear:hover { color:#e07070; border-color:#e07070; }
 
 /* TOAST */
 .toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--surface2); border:1px solid var(--border2); border-radius:100px; padding:9px 20px; font-size:.8rem; color:var(--text); z-index:300; opacity:0; transition:opacity .25s,transform .25s; pointer-events:none; white-space:nowrap; }
@@ -339,7 +381,21 @@ header p { color:var(--muted); font-size:.72rem; letter-spacing:.08em; text-tran
       <div>⏳ <span class="c-m" id="cremaining">0</span></div>
     </div>
   </header>
-  <!-- LIGHTBOX -->
+  
+<!-- THERMO POPUP -->
+<div class="thermo-popup" id="thermoPopup">
+  <div class="thermo-popup-title">Nível de Interesse</div>
+  <div class="thermo-popup-bar" id="thermoPopupBar" data-level="0">
+    <div class="pseg" data-n="1"></div>
+    <div class="pseg" data-n="2"></div>
+    <div class="pseg" data-n="3"></div>
+    <div class="pseg" data-n="4"></div>
+    <div class="pseg" data-n="5"></div>
+  </div>
+  <button class="thermo-popup-clear" id="thermoPopupClear">Remover classificação</button>
+</div>
+
+<!-- LIGHTBOX -->
 <div id="lightbox">
   <button id="lightbox-close">✕</button>
   <img id="lightbox-img" src="" alt="">
@@ -584,7 +640,7 @@ async function loadFromDrive() {
 async function saveToDrive() {
   if (!accessToken) return;
   setSyncStatus('syncing', 'Salvando…');
-  const body = JSON.stringify({ films: state.films, watched: state.watched, nextId: state.nextId });
+  const body = JSON.stringify({ films: state.films, watched: state.watched, nextId: state.nextId, interest: state.interest, collapsedGenres: state.collapsedGenres, collapsedWatchedGenres: state.collapsedWatchedGenres, activeTab: state.activeTab });
   // Cache locally too
   try { localStorage.setItem('filmes_cache', body); } catch(e) {}
 
@@ -727,12 +783,12 @@ function cardHtml(film, gcClass, isWatchedCard=false) {
           <button class="watch-btn" data-wid="${film.id}">${isW?'✓':''}</button>
           <span class="film-orig">${film.orig||''}</span>
           <div style="display:flex;align-items:center;gap:6px">
-            <div class="thermo-bar" data-id="${film.id}" data-level="${state.interest[film.id]||0}">
-              <div class="seg" data-n="1"></div>
-              <div class="seg" data-n="2"></div>
-              <div class="seg" data-n="3"></div>
-              <div class="seg" data-n="4"></div>
-              <div class="seg" data-n="5"></div>
+            <div class="thermo-mini" data-id="${film.id}" data-level="${state.interest[film.id]||0}">
+              <div class="seg"></div>
+              <div class="seg"></div>
+              <div class="seg"></div>
+              <div class="seg"></div>
+              <div class="seg"></div>
             </div>
             <button class="del-btn" data-did="${film.id}" title="Remover">✕</button>
           </div>
@@ -845,22 +901,11 @@ function bindCardEvents() {
       }
     });
   });
-  // Thermometer
-  document.querySelectorAll('.thermo-bar').forEach(bar => {
-    bar.querySelectorAll('.seg').forEach(seg => {
-      seg.addEventListener('click', e => {
-        e.stopPropagation();
-        const id = +bar.dataset.id;
-        const n = +seg.dataset.n;
-        const cur = +bar.dataset.level;
-        const newLevel = (cur === n) ? 0 : n;
-        state.interest[id] = newLevel;
-        bar.dataset.level = newLevel;
-        scheduleSave();
-        // Re-render to reorder (debounced slightly)
-        clearTimeout(bar._rt);
-        bar._rt = setTimeout(() => render(), 600);
-      });
+  // Thermometer mini — open popup on tap
+  document.querySelectorAll('.thermo-mini').forEach(mini => {
+    mini.addEventListener('click', e => {
+      e.stopPropagation();
+      openThermoPopup(mini);
     });
   });
 
