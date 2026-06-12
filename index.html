@@ -612,10 +612,10 @@ header p { color:var(--muted); font-size:.72rem; letter-spacing:.08em; text-tran
           <div class="mseg" data-n="4"></div>
           <div class="mseg" data-n="5"></div>
         </div>
-        <div class="modal-thermo-hint">Escolha um nível para adicionar o filme</div>
+        <div class="modal-thermo-hint">Opcional — pode adicionar sem classificar</div>
       </div>
       <div class="result-actions">
-        <button class="btn-add btn-add-disabled" id="btnAdd">＋ Adicionar à lista</button>
+        <button class="btn-add" id="btnAdd">＋ Adicionar à lista</button>
         <button class="btn-cancel" id="btnCancel">← Voltar</button>
       </div>
     </div>
@@ -1231,7 +1231,7 @@ function resetSearchUI() {
   document.getElementById('searchResultsList').style.display = 'none';
   document.getElementById('modalThermoWrap').classList.remove('visible');
   document.getElementById('modalThermoBar').dataset.level = '0';
-  document.getElementById('btnAdd').classList.add('btn-add-disabled');
+  document.getElementById('btnAdd').classList.remove('btn-add-disabled');
   pendingFilm = null;
 }
 
@@ -1346,13 +1346,19 @@ function showResult(film) {
   document.getElementById('resultDir').textContent = film.dir ? 'Dir. ' + film.dir : '';
   document.getElementById('resultMeta').innerHTML = `<span class="result-year">${film.year}</span>` + (film.genres||[]).map(g=>`<span class="result-tag">${g}</span>`).join('');
   document.getElementById('resultSynopsis').textContent = film.synopsis || '';
+  // Mostrar termômetro e resetar nível
+  document.getElementById('modalThermoBar').dataset.level = '0';
+  document.getElementById('modalThermoWrap').classList.add('visible');
+  document.querySelector('.modal-thermo-hint').textContent = 'Opcional — pode adicionar sem classificar';
   document.getElementById('searchResult').classList.add('visible');
+  setTimeout(() => {
+    document.getElementById('modalThermoWrap').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 200);
 }
 
 function addPendingFilm() {
   if (!pendingFilm) return;
   const level = +document.getElementById('modalThermoBar').dataset.level;
-  if (!level) return; // shouldn't happen — button is disabled until level chosen
   const exists = state.films.some(f =>
     (f.orig||'').toLowerCase() === (pendingFilm.orig||'').toLowerCase() ||
     f.title.toLowerCase() === pendingFilm.title.toLowerCase()
@@ -1411,13 +1417,9 @@ document.getElementById('modalThermoBar').querySelectorAll('.mseg').forEach(seg 
     const n = +seg.dataset.n;
     const cur = +bar.dataset.level;
     bar.dataset.level = (cur === n) ? 0 : n;
-    // Enable/disable add button
-    const addBtn = document.getElementById('btnAdd');
-    if (+bar.dataset.level > 0) {
-      addBtn.classList.remove('btn-add-disabled');
-    } else {
-      addBtn.classList.add('btn-add-disabled');
-    }
+    // Update hint text
+    const hint = document.querySelector('.modal-thermo-hint');
+    if (hint) hint.textContent = +bar.dataset.level > 0 ? 'Nível ' + bar.dataset.level + ' selecionado ✓' : 'Opcional — pode adicionar sem classificar';
   });
 });
 
