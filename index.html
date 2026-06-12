@@ -740,16 +740,38 @@ function setSyncStatus(status, msg) {
   msgEl.textContent = msg;
 }
 
-async function driveRequest(url, options = {}) {
+async function driveRequest(url, options = {}, retry = true) {
   const res = await fetch(url, {
     ...options,
     headers: { 'Authorization': 'Bearer ' + accessToken, ...(options.headers || {}) }
   });
+  if (res.status === 401 && retry) {
+    // Token expirado — renova silenciosamente
+    try { await renewToken(); } catch(e) { throw new Error('Sessão expirada. Recarregue o app.'); }
+    return driveRequest(url, options, false);
+  }
   if (!res.ok) {
     const err = await res.text();
     throw new Error('Drive error ' + res.status + ': ' + err);
   }
   return res;
+}
+
+function renewToken() {
+  return new Promise((resolve, reject) => {
+    const client = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: SCOPES,
+      prompt: '',
+      callback: (response) => {
+        if (response.error) { reject(response.error); return; }
+        accessToken = response.access_token;
+        sessionStorage.setItem('gtoken', accessToken);
+        resolve();
+      }
+    });
+    client.requestAccessToken();
+  });
 }
 
 async function findFile() {
@@ -842,7 +864,8 @@ async function saveToDrive() {
     setSyncStatus('ok', 'Sincronizado · ' + new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'}));
   } catch(e) {
     console.error('saveToDrive error:', e);
-    setSyncStatus('error', 'Falha ao salvar — dados em cache local');
+    setSyncStatus('error', 'Falha ao salvar');
+    showToast('⚠ Erro ao salvar no Drive — verifique a conexão');
   }
 }
 
