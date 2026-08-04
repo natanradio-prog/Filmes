@@ -696,6 +696,43 @@ const INITIAL_FILMS = [
   { id:22, title:"O Grande Diabolik",           orig:"Danger: Diabolik",                year:1968, dir:"Mario Bava",            genres:["acao","suspense"],               poster:"https://image.tmdb.org/t/p/w342/2rj0gVrFBpT2VdJNqRFUPMpUXez.jpg", synopsis:"Diabolik (John Phillip Law) é um ladrão genial que rouba fortunas para sua amante Eva Kant (Marisa Mell). Um inspetor implacável o persegue enquanto ele planeja seu maior golpe. Clássico cult italiano com trilha de Ennio Morricone." },
 ];
 
+
+// ─── PLATFORM CONFIG ───────────────────────────────────────────
+const PROVIDER_MAP = {
+  8:   { cls:'plat-netflix',   label:'N',   name:'Netflix' },
+  119: { cls:'plat-prime',     label:'P',   name:'Prime Video' },
+  337: { cls:'plat-disney',    label:'D+',  name:'Disney+' },
+  1899:{ cls:'plat-max',       label:'Max', name:'Max' },
+  384: { cls:'plat-max',       label:'Max', name:'Max' },
+  2:   { cls:'plat-apple',     label:'TV+', name:'Apple TV+' },
+  350: { cls:'plat-apple',     label:'TV+', name:'Apple TV+' },
+  307: { cls:'plat-globo',     label:'G',   name:'Globoplay' },
+  11:  { cls:'plat-mubi',      label:'M',   name:'MUBI' },
+  167: { cls:'plat-star',      label:'S+',  name:'Star+' },
+  531: { cls:'plat-paramount', label:'P+',  name:'Paramount+' },
+};
+
+function providerHtml(providers) {
+  if (!providers) return ''; // still loading — show nothing
+  const known = providers.slice(0,3).map(p => {
+    const cfg = PROVIDER_MAP[p.provider_id];
+    if (!cfg) return '';
+    return `<div class="plat-logo ${cfg.cls}" title="${cfg.name}">${cfg.label}</div>`;
+  }).filter(Boolean);
+  if (!known.length) return '<div class="plat-logo plat-unknown" title="Não disponível em streaming">?</div>';
+  return known.join('');
+}
+
+async function fetchProviders(tmdbId) {
+  try {
+    const res = await fetch(`https://api.themoviedb.org/3/movie/${tmdbId}/watch/providers?api_key=${TMDB_KEY}`);
+    const data = await res.json();
+    const br = data.results?.BR;
+    if (!br) return [];
+    return br.flatrate || br.free || br.ads || [];
+  } catch(e) { return []; }
+}
+
 // ─── POSTER CACHE ──────────────────────────────────────────────
 const posterCache = {};
 
@@ -718,34 +755,37 @@ async function fetchPoster(filmId) {
 }
 
 async function loadAllPosters() {
-  // Only fetch posters for films that don't have one yet
-  const filmsWithoutPoster = state.films.filter(f => !f.poster);
-  if (!filmsWithoutPoster.length) return;
+  const filmsToUpdate = state.films.filter(f => !f.poster || !f.providers);
+  if (!filmsToUpdate.length) return;
 
-  await Promise.all(filmsWithoutPoster.map(async film => {
+  await Promise.all(filmsToUpdate.map(async film => {
     try {
-      // Try hardcoded TMDB ID first, then fallback to title search
-      let tmdbId = TMDB_IDS[film.id];
+      let tmdbId = film.tmdb_id || TMDB_IDS[film.id];
       if (!tmdbId) {
-        // Search by original title
         const q = encodeURIComponent(film.orig || film.title);
         const r = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${q}&language=pt-BR`);
         const d = await r.json();
         tmdbId = d.results?.[0]?.id;
       }
       if (!tmdbId) return;
-      const r2 = await fetch(`https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${TMDB_KEY}&language=pt-BR`);
-      const d2 = await r2.json();
-      if (d2.poster_path) {
-        film.poster = `https://image.tmdb.org/t/p/w342${d2.poster_path}`;
-        posterCache[film.id] = film.poster;
+      film.tmdb_id = tmdbId;
+
+      if (!film.poster) {
+        const r2 = await fetch(`https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${TMDB_KEY}&language=pt-BR`);
+        const d2 = await r2.json();
+        if (d2.poster_path) {
+          film.poster = `https://image.tmdb.org/t/p/w342${d2.poster_path}`;
+          posterCache[film.id] = film.poster;
+        }
       }
-      // Fetch providers too if not set
+
       if (!film.providers) {
         film.providers = await fetchProviders(tmdbId);
       }
     } catch(e) {}
   }));
+
+  scheduleSave();
   render();
 }
 
@@ -1451,41 +1491,6 @@ document.getElementById('modalThermoBar').querySelectorAll('.mseg').forEach(seg 
   });
 });
 
-
-// ─── PLATFORM CONFIG ───────────────────────────────────────────
-const PROVIDER_MAP = {
-  8:   { cls:'plat-netflix',   label:'N',   name:'Netflix' },
-  119: { cls:'plat-prime',     label:'P',   name:'Prime Video' },
-  337: { cls:'plat-disney',    label:'D+',  name:'Disney+' },
-  1899:{ cls:'plat-max',       label:'Max', name:'Max' },
-  384: { cls:'plat-max',       label:'Max', name:'Max' },
-  2:   { cls:'plat-apple',     label:'TV+', name:'Apple TV+' },
-  350: { cls:'plat-apple',     label:'TV+', name:'Apple TV+' },
-  307: { cls:'plat-globo',     label:'G',   name:'Globoplay' },
-  11:  { cls:'plat-mubi',      label:'M',   name:'MUBI' },
-  167: { cls:'plat-star',      label:'S+',  name:'Star+' },
-  531: { cls:'plat-paramount', label:'P+',  name:'Paramount+' },
-};
-
-function providerHtml(providers) {
-  if (!providers || !providers.length) return '<div class="plat-logo plat-unknown" title="Não encontrado">?</div>';
-  return providers.slice(0,3).map(p => {
-    const cfg = PROVIDER_MAP[p.provider_id];
-    if (!cfg) return '';
-    return `<div class="plat-logo ${cfg.cls}" title="${cfg.name}">${cfg.label}</div>`;
-  }).filter(Boolean).join('');
-}
-
-async function fetchProviders(tmdbId) {
-  try {
-    const res = await fetch(`https://api.themoviedb.org/3/movie/${tmdbId}/watch/providers?api_key=${TMDB_KEY}`);
-    const data = await res.json();
-    const br = data.results?.BR;
-    if (!br) return [];
-    // Prefer flatrate (subscription), then free, then ads
-    return br.flatrate || br.free || br.ads || [];
-  } catch(e) { return []; }
-}
 
 // ─── FILTER ────────────────────────────────────────────────────
 document.getElementById('filterLevels').querySelectorAll('.flvl').forEach(btn => {
