@@ -474,6 +474,26 @@ header p { color:var(--muted); font-size:.72rem; letter-spacing:.08em; text-tran
 .modal-thermo-hint { font-size:.7rem; color:var(--muted2); margin-top:10px; }
 .btn-add-disabled { opacity:.45; cursor:default; pointer-events:none; }
 
+
+/* PLATFORM LOGOS */
+.platforms { display:flex; gap:4px; align-items:center; flex-shrink:0; }
+.plat-logo {
+  width:26px; height:26px; border-radius:6px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:.5rem; font-weight:700; letter-spacing:-.02em;
+  flex-shrink:0; overflow:hidden; cursor:default;
+}
+.plat-netflix  { background:#e50914; color:#fff; }
+.plat-prime    { background:#00a8e0; color:#fff; }
+.plat-disney   { background:#113ccf; color:#fff; }
+.plat-max      { background:#5822b4; color:#fff; }
+.plat-apple    { background:#1c1c1e; color:#fff; border:1px solid #3a3a3c; }
+.plat-globo    { background:#e8a200; color:#fff; }
+.plat-mubi     { background:#000; color:#fff; border:1px solid #444; }
+.plat-star     { background:#0e2b63; color:#fff; }
+.plat-paramount{ background:#0064ff; color:#fff; }
+.plat-unknown  { background:var(--surface2); color:var(--muted2); border:1px solid var(--border2); font-size:.45rem; }
+
 /* TOAST */
 .toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--surface2); border:1px solid var(--border2); border-radius:100px; padding:9px 20px; font-size:.8rem; color:var(--text); z-index:300; opacity:0; transition:opacity .25s,transform .25s; pointer-events:none; white-space:nowrap; }
 .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
@@ -719,6 +739,10 @@ async function loadAllPosters() {
       if (d2.poster_path) {
         film.poster = `https://image.tmdb.org/t/p/w342${d2.poster_path}`;
         posterCache[film.id] = film.poster;
+      }
+      // Fetch providers too if not set
+      if (!film.providers) {
+        film.providers = await fetchProviders(tmdbId);
       }
     } catch(e) {}
   }));
@@ -1322,6 +1346,7 @@ async function fetchFilmDetails(tmdbResult) {
   const mappedGenres = [...new Set((detail.genres||[]).map(g=>genreMap[g.id]).filter(Boolean))];
   if (!mappedGenres.length) mappedGenres.push('drama');
   const poster = tmdbResult.poster_path ? `https://image.tmdb.org/t/p/w342${tmdbResult.poster_path}` : null;
+  const providers = await fetchProviders(tmdbId);
   return {
     title: detail.title || tmdbResult.title,
     orig: detail.original_title || tmdbResult.original_title,
@@ -1331,6 +1356,7 @@ async function fetchFilmDetails(tmdbResult) {
     synopsis: detail.overview || tmdbResult.overview || '',
     poster,
     tmdb_id: tmdbId,
+    providers,
   };
 }
 
@@ -1373,6 +1399,8 @@ function addPendingFilm() {
     genres: pendingFilm.genres || ['drama'],
     poster: pendingFilm.poster || null,
     synopsis: pendingFilm.synopsis || '',
+    providers: pendingFilm.providers || [],
+    tmdb_id: pendingFilm.tmdb_id || null,
   };
   state.films.push(newFilm);
   state.interest[newFilm.id] = level;
@@ -1422,6 +1450,42 @@ document.getElementById('modalThermoBar').querySelectorAll('.mseg').forEach(seg 
     if (hint) hint.textContent = +bar.dataset.level > 0 ? 'Nível ' + bar.dataset.level + ' selecionado ✓' : 'Opcional — pode adicionar sem classificar';
   });
 });
+
+
+// ─── PLATFORM CONFIG ───────────────────────────────────────────
+const PROVIDER_MAP = {
+  8:   { cls:'plat-netflix',   label:'N',   name:'Netflix' },
+  119: { cls:'plat-prime',     label:'P',   name:'Prime Video' },
+  337: { cls:'plat-disney',    label:'D+',  name:'Disney+' },
+  1899:{ cls:'plat-max',       label:'Max', name:'Max' },
+  384: { cls:'plat-max',       label:'Max', name:'Max' },
+  2:   { cls:'plat-apple',     label:'TV+', name:'Apple TV+' },
+  350: { cls:'plat-apple',     label:'TV+', name:'Apple TV+' },
+  307: { cls:'plat-globo',     label:'G',   name:'Globoplay' },
+  11:  { cls:'plat-mubi',      label:'M',   name:'MUBI' },
+  167: { cls:'plat-star',      label:'S+',  name:'Star+' },
+  531: { cls:'plat-paramount', label:'P+',  name:'Paramount+' },
+};
+
+function providerHtml(providers) {
+  if (!providers || !providers.length) return '<div class="plat-logo plat-unknown" title="Não encontrado">?</div>';
+  return providers.slice(0,3).map(p => {
+    const cfg = PROVIDER_MAP[p.provider_id];
+    if (!cfg) return '';
+    return `<div class="plat-logo ${cfg.cls}" title="${cfg.name}">${cfg.label}</div>`;
+  }).filter(Boolean).join('');
+}
+
+async function fetchProviders(tmdbId) {
+  try {
+    const res = await fetch(`https://api.themoviedb.org/3/movie/${tmdbId}/watch/providers?api_key=${TMDB_KEY}`);
+    const data = await res.json();
+    const br = data.results?.BR;
+    if (!br) return [];
+    // Prefer flatrate (subscription), then free, then ads
+    return br.flatrate || br.free || br.ads || [];
+  } catch(e) { return []; }
+}
 
 // ─── FILTER ────────────────────────────────────────────────────
 document.getElementById('filterLevels').querySelectorAll('.flvl').forEach(btn => {
